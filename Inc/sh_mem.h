@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-#define MEM_POOL_SIZE   (20 * 1024)
+#define MEM_POOL_SIZE   (10 * 1024)
 
 void* sh_malloc(size_t size);
 void* sh_realloc(void* ptr, size_t size);

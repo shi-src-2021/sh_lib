@@ -88,15 +88,6 @@ void sh_timer_stop(sh_timer_t *self)
     sh_list_remove(&self->list);
 }
 
-void sh_timer_print(uint32_t current_tick)
-{
-    sh_list_for_each(node, &head) {
-        sh_timer_t *timer = sh_container_of(node, sh_timer_t, list);
-        printf("%s: %5d -> ", (char*)timer->param, timer->overtick - current_tick);
-    }
-    printf("\r\n");
-}
-
 void sh_timer_loop(void)
 {
     SH_ASSERT(sh_timer_get_tick);
