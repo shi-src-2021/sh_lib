@@ -61,6 +61,8 @@ class TEST_SH_EVENT : public testing::Test {
 protected:  
     void SetUp()
     {
+        mem_size = sh_get_free_size();
+
         map = sh_event_map_create(event_table, ARRAY_SIZE(event_table));
         server1 = sh_event_server_create(map, "server1");
         server2 = sh_event_server_create(map, "server2");
@@ -72,12 +74,14 @@ protected:
         ASSERT_NE(nullptr, map);
         ASSERT_NE(nullptr, server1);
         ASSERT_NE(nullptr, server2);
-
-        mem_size = sh_get_free_size();
     }
 
     void TearDown()
     {
+        sh_event_map_destroy(map);
+        sh_event_server_destroy(server1);
+        sh_event_server_destroy(server2);
+        
         EXPECT_EQ(mem_size, sh_get_free_size());
     }
     

@@ -55,8 +55,10 @@ struct sh_event_server {
 typedef struct sh_event_server sh_event_server_t;
 
 sh_event_map_t* sh_event_map_create(struct sh_event_type_table *table, size_t size);
+void sh_event_map_destroy(sh_event_map_t *map);
 char* sh_event_get_event_id_name(struct sh_event_type_table *table, size_t size, uint8_t event_id);
 sh_event_server_t* sh_event_server_create(sh_event_map_t *map, const char *name);
+void sh_event_server_destroy(sh_event_server_t *server);
 int sh_event_subscribe_sync(sh_event_server_t *server, uint8_t event_id, event_cb cb);
 int sh_event_subscribe(sh_event_server_t *server, uint8_t event_id, event_cb cb);
 int sh_event_unsubscribe(sh_event_server_t *server, uint8_t event_id);

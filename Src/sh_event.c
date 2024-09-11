@@ -71,6 +71,18 @@ sh_event_map_t* sh_event_map_create(struct sh_event_type_table *table, size_t si
     return map;
 }
 
+void sh_event_map_destroy(sh_event_map_t *map)
+{
+    SH_ASSERT(map);
+
+    sh_list_for_each_safe(node, &map->obj.list) {
+        sh_event_t *event = (sh_event_t*)sh_container_of(node, sh_event_obj_t, list);
+        SH_FREE(event);
+    }
+
+    SH_FREE(map);
+}
+
 char* sh_event_get_event_id_name(struct sh_event_type_table *table, size_t size, uint8_t event_id)
 {
     SH_ASSERT(table);
@@ -138,6 +150,15 @@ free_server:
     SH_FREE(server);
 
     return NULL;
+}
+
+void sh_event_server_destroy(sh_event_server_t *server)
+{
+    SH_ASSERT(server);
+
+    SH_FREE(server->sub_mode);
+    SH_FREE(server->cb);
+    SH_FREE(server);
 }
 
 static int __sh_event_subscribe(sh_event_server_t *server, uint8_t event_id, event_cb cb, uint8_t sub_mode)
