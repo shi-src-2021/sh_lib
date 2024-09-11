@@ -9,8 +9,8 @@
 extern "C" {
 #endif
 
-#define SH_MALLOC           sh_malloc
-#define SH_FREE             sh_free
+#define SH_MALLOC   sh_malloc
+#define SH_FREE     sh_free
 
 typedef struct sh_hash_handle sh_hash_t;
 
