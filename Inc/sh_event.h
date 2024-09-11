@@ -34,13 +34,15 @@ struct sh_event_type_table {
     char            name[SH_EVENT_NAME_MAX];
 };
 
-struct sh_event {
+struct sh_event_msg {
     uint8_t         id;
     void           *data;
     size_t          data_size;
 };
 
-typedef void(*event_cb)(const struct sh_event *e);
+typedef struct sh_event_msg sh_event_msg_t;
+
+typedef void(*event_cb)(const sh_event_msg_t *e);
 
 struct sh_event_server {
     sh_event_obj_t  obj;

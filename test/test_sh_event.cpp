@@ -11,8 +11,6 @@ volatile int init_cnt;
 volatile int enter_cnt;
 volatile int exit_cnt;
 
-void *event_msg_p;
-
 enum sh_event_type {
     SH_EVENT_INIT = 7,
     SH_EVENT_ENTER,
@@ -25,29 +23,32 @@ static struct sh_event_type_table event_table[] = {
     {SH_EVENT_EXIT,     "exit"},
 };
 
+char event_cb_output_buf[100];
+
 static char* get_event_id_name(uint8_t event_id)
 {
     return sh_event_get_event_id_name(event_table, ARRAY_SIZE(event_table), event_id);
 }
 
-static void test_event_cb(const struct sh_event *e)
+static void test_event_cb(const sh_event_msg_t *e)
 {
-    event_msg_p = e->data;
-
     switch (e->id)
     {
     case SH_EVENT_INIT:
-        printf("%s\r\n", get_event_id_name(SH_EVENT_INIT));
+        sprintf(event_cb_output_buf, "%s - %s", 
+                get_event_id_name(e->id), e->data);
         init_cnt++;
         break;
         
     case SH_EVENT_ENTER:
-        printf("%s\r\n", get_event_id_name(SH_EVENT_ENTER));
+        sprintf(event_cb_output_buf, "%s - %s", 
+                get_event_id_name(e->id), e->data);
         enter_cnt++;
         break;
         
     case SH_EVENT_EXIT:
-        printf("%s\r\n", get_event_id_name(SH_EVENT_EXIT));
+        sprintf(event_cb_output_buf, "%s - %s", 
+                get_event_id_name(e->id), e->data);
         exit_cnt++;
         break;
 
@@ -67,8 +68,6 @@ protected:
         init_cnt = 0;
         enter_cnt = 0;
         exit_cnt = 0;
-
-        event_msg_p = nullptr;
 
         ASSERT_NE(nullptr, map);
         ASSERT_NE(nullptr, server1);
