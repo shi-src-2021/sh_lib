@@ -38,6 +38,7 @@ int sh_timer_start(sh_timer_t *self, uint32_t now, uint32_t interval_tick);
 void sh_timer_restart(sh_timer_t *self, uint32_t now);
 void sh_timer_stop(sh_timer_t *self);
 void sh_timer_loop(void);
+bool sh_timer_is_time_out(uint32_t now, uint32_t set_tick);
 
 #ifdef __cplusplus
 }   /* extern "C" */ 

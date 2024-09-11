@@ -88,6 +88,11 @@ void sh_timer_stop(sh_timer_t *self)
     sh_list_remove(&self->list);
 }
 
+bool sh_timer_is_time_out(uint32_t now, uint32_t set_tick)
+{
+    return ((int32_t)(now - set_tick) >= 0);
+}
+
 void sh_timer_loop(void)
 {
     SH_ASSERT(sh_timer_get_tick);
@@ -97,7 +102,7 @@ void sh_timer_loop(void)
 restart:
     sh_list_for_each(node, &head) {
         sh_timer_t *timer = sh_container_of(node, sh_timer_t, list);
-        if ((int32_t)(current_tick - timer->overtick) < 0) {
+        if (!sh_timer_is_time_out(current_tick, timer->overtick)) {
             return;
         }
         sh_timer_stop(timer);

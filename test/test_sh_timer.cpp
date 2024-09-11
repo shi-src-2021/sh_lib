@@ -88,3 +88,11 @@ TEST_F(TEST_SH_TIMER, sh_timer_init_test) {
     EXPECT_EQ(timer_cnt[4], 1);
 }
 
+TEST_F(TEST_SH_TIMER, tick_overflow_test) {
+    EXPECT_TRUE(sh_timer_is_time_out(100, -100));
+    EXPECT_TRUE(!sh_timer_is_time_out(-100, 100));
+    EXPECT_TRUE(sh_timer_is_time_out(100, 100));
+    EXPECT_TRUE(sh_timer_is_time_out(0, 0));
+    EXPECT_TRUE(sh_timer_is_time_out(-1, -1));
+}
+
