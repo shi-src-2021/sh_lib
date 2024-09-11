@@ -7,11 +7,11 @@
 #include "sh_assert.h"
 
 #ifndef SH_MALLOC
-    #define SH_MALLOC       malloc
+    #define SH_MALLOC   malloc
 #endif
 
 #ifndef SH_FREE
-    #define SH_FREE         free
+    #define SH_FREE     free
 #endif
 
 struct sh_event_list_node {
