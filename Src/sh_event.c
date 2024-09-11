@@ -4,6 +4,7 @@
 
 #include "sh_event.h"
 #include "sh_lib.h"
+#include "sh_assert.h"
 
 #ifndef SH_MALLOC
     #define SH_MALLOC       malloc
@@ -44,6 +45,8 @@ static int __sh_event_execute(sh_event_server_t *server, bool is_cb_called);
 
 sh_event_map_t* sh_event_map_create(struct sh_event_type_table *table, size_t size)
 {
+    SH_ASSERT(table);
+    
     sh_event_map_t *map = (sh_event_map_t*)SH_MALLOC(sizeof(sh_event_map_t));
     if (map == NULL) {
         return NULL;
@@ -70,10 +73,8 @@ sh_event_map_t* sh_event_map_create(struct sh_event_type_table *table, size_t si
 
 char* sh_event_get_event_id_name(struct sh_event_type_table *table, size_t size, uint8_t event_id)
 {
-    if (table == NULL) {
-        return NULL;
-    }
-
+    SH_ASSERT(table);
+    
     for (int i = 0; i < size; i++) {
         if (table[i].event_id == event_id) {
             return table[i].name;
@@ -85,13 +86,8 @@ char* sh_event_get_event_id_name(struct sh_event_type_table *table, size_t size,
 
 static int sh_event_server_init(sh_event_server_t *server, sh_event_map_t *map, const char *name)
 {
-    if (map == NULL) {
-        return -1;
-    }
-
-    if (server == NULL) {
-        return -1;
-    }
+    SH_ASSERT(server);
+    SH_ASSERT(map);
 
     for (int i = 0; i < map->cnt; i++) {
         server->cb[i]       = NULL;
@@ -107,6 +103,9 @@ static int sh_event_server_init(sh_event_server_t *server, sh_event_map_t *map, 
 
 sh_event_server_t* sh_event_server_create(sh_event_map_t *map, const char *name)
 {
+    SH_ASSERT(map);
+    SH_ASSERT(name);
+
     sh_event_server_t *server = SH_MALLOC(sizeof(sh_event_server_t));
     if (server == NULL) {
         return NULL;
@@ -137,15 +136,13 @@ free_cb:
     SH_FREE(__cb);
 free_server:
     SH_FREE(server);
-    
+
     return NULL;
 }
 
 static int __sh_event_subscribe(sh_event_server_t *server, uint8_t event_id, event_cb cb, uint8_t sub_mode)
 {
-    if (server == NULL) {
-        return -1;
-    }
+    SH_ASSERT(server);
 
     sh_event_t *event = sh_event_get_event_by_id(server->map, event_id);
     if (event == NULL) {
@@ -184,16 +181,22 @@ static int __sh_event_subscribe(sh_event_server_t *server, uint8_t event_id, eve
 
 int sh_event_subscribe_sync(sh_event_server_t *server, uint8_t event_id, event_cb cb)
 {
+    SH_ASSERT(server);
+    
     return __sh_event_subscribe(server, event_id, cb, SH_EVENT_SUB_SYNC);
 }
 
 int sh_event_subscribe(sh_event_server_t *server, uint8_t event_id, event_cb cb)
 {
+    SH_ASSERT(server);
+    
     return __sh_event_subscribe(server, event_id, cb, SH_EVENT_SUB_ASYNC);
 }
 
 int sh_event_unsubscribe(sh_event_server_t *server, uint8_t event_id)
 {
+    SH_ASSERT(server);
+    
     sh_event_t *event = sh_event_get_event_by_id(server->map, event_id);
     if (event == NULL) {
         return -1;
@@ -226,6 +229,9 @@ int sh_event_unsubscribe(sh_event_server_t *server, uint8_t event_id)
 
 static bool sh_event_execute_sync_cb(sh_event_server_t *server, uint8_t index, sh_event_msg_t *msg)
 {
+    SH_ASSERT(server);
+    SH_ASSERT(msg);
+    
     if (server->sub_mode[index] == SH_EVENT_SUB_SYNC) {
         if (server->cb[index] != NULL) {
             server->cb[index](msg);
@@ -238,6 +244,9 @@ static bool sh_event_execute_sync_cb(sh_event_server_t *server, uint8_t index, s
 
 static int sh_event_server_save_msg(sh_event_server_t *server, sh_event_msg_ctrl_t *msg_ctrl)
 {
+    SH_ASSERT(server);
+    SH_ASSERT(msg_ctrl);
+    
     sh_event_list_node_t *event_node = sh_event_list_node_create(msg_ctrl);
     if (event_node == NULL) {
         return -1;
@@ -252,6 +261,8 @@ static int sh_event_server_save_msg(sh_event_server_t *server, sh_event_msg_ctrl
 
 static void sh_event_check_if_msg_needs_to_free(sh_event_msg_ctrl_t *msg_ctrl)
 {
+    SH_ASSERT(msg_ctrl);
+    
     if (msg_ctrl->ref == 0) {
         if (msg_ctrl->msg.data) {
             SH_FREE(msg_ctrl->msg.data);
@@ -264,6 +275,8 @@ static void sh_event_check_if_msg_needs_to_free(sh_event_msg_ctrl_t *msg_ctrl)
 
 int sh_event_publish_with_param(sh_event_map_t *map, uint8_t event_id, void *data, size_t size)
 {
+    SH_ASSERT(map);
+
     sh_event_t *event = sh_event_get_event_by_id(map, event_id);
     if (event == NULL) {
         return -1;
@@ -303,16 +316,22 @@ int sh_event_publish_with_param(sh_event_map_t *map, uint8_t event_id, void *dat
 
 int sh_event_publish(sh_event_map_t *map, uint8_t event_id)
 {
+    SH_ASSERT(map);
+    
     return sh_event_publish_with_param(map, event_id, NULL, 0);
 }
 
 int sh_event_execute(sh_event_server_t *server)
 {
+    SH_ASSERT(server);
+    
     return __sh_event_execute(server, true);
 }
 
 int sh_event_server_clear_msg(sh_event_server_t *server)
 {
+    SH_ASSERT(server);
+    
     return __sh_event_execute(server, false);
 }
 
@@ -322,6 +341,9 @@ static int sh_event_execute_async_cb(sh_event_server_t   *server,
                                      sh_event_msg_ctrl_t *msg_ctrl,
                                      bool                 is_cb_called)
 {
+    SH_ASSERT(server);
+    SH_ASSERT(msg_ctrl);
+    
     uint8_t index = 0;
 
     if (sh_event_get_index_by_id(server->map, msg_ctrl->msg.id, &index)) {
@@ -338,10 +360,8 @@ static int sh_event_execute_async_cb(sh_event_server_t   *server,
 
 static int __sh_event_execute(sh_event_server_t *server, bool is_cb_called)
 {
-    if (server == NULL) {
-        return -1;
-    }
-
+    SH_ASSERT(server);
+    
     if (sh_list_isempty(&server->event_queue)) {
         return 0;
     }
@@ -371,6 +391,8 @@ static int __sh_event_execute(sh_event_server_t *server, bool is_cb_called)
 
 static int sh_event_obj_init(sh_event_obj_t *obj, const char *name)
 {
+    SH_ASSERT(obj);
+    
     if (strlen(name) >= SH_EVENT_NAME_MAX) {
         return -1;
     }
@@ -423,10 +445,8 @@ static sh_event_msg_ctrl_t* sh_event_msg_create(uint8_t event_id, void *data, si
 
 static sh_event_t *sh_event_get_event_by_id(sh_event_map_t *map, uint8_t id)
 {
-    if (map == NULL) {
-        return NULL;
-    }
-
+    SH_ASSERT(map);
+    
     sh_list_for_each(node, &map->obj.list) {
         sh_event_t *event = (sh_event_t*)sh_container_of(node, sh_event_obj_t, list);
             
@@ -440,11 +460,9 @@ static sh_event_t *sh_event_get_event_by_id(sh_event_map_t *map, uint8_t id)
 
 static int sh_event_get_index_by_id(sh_event_map_t *map, uint8_t id, uint8_t *index)
 {
+    SH_ASSERT(map);
+    
     uint8_t __index = 0;
-
-    if (map == NULL) {
-        return -1;
-    }
 
     sh_list_for_each(node, &map->obj.list) {
         sh_event_t *event = (sh_event_t *)sh_container_of(node, sh_event_obj_t, list);
