@@ -17,75 +17,75 @@ int sh_timer_sys_init(sh_timer_get_tick_fn fn)
     return 0;
 }
 
-void sh_timer_init(sh_timer_t *self, enum sh_timer_mode mode, overtick_cb_fn cb)
+void sh_timer_init(sh_timer_t *timer, enum sh_timer_mode mode, overtick_cb_fn cb)
 {
-    SH_ASSERT(self);
+    SH_ASSERT(timer);
 
-    self->cb = cb;
-    self->mode = mode;
-    self->param = NULL;
-    self->enable = false;
-    self->interval_tick = 0;
-    self->overtick = 0;
+    timer->cb = cb;
+    timer->mode = mode;
+    timer->param = NULL;
+    timer->enable = false;
+    timer->interval_tick = 0;
+    timer->overtick = 0;
 
-    sh_list_init(&self->list);
+    sh_list_init(&timer->list);
 }
 
-void sh_timer_set_param(sh_timer_t *self, void *param)
+void sh_timer_set_param(sh_timer_t *timer, void *param)
 {
-    SH_ASSERT(self);
+    SH_ASSERT(timer);
     
-    self->param = param;
+    timer->param = param;
 }
 
-void sh_timer_set_mode(sh_timer_t *self, enum sh_timer_mode mode)
+void sh_timer_set_mode(sh_timer_t *timer, enum sh_timer_mode mode)
 {
-    SH_ASSERT(self);
+    SH_ASSERT(timer);
     
-    self->mode = mode;
+    timer->mode = mode;
 }
 
-int sh_timer_start(sh_timer_t *self, uint32_t now, uint32_t interval_tick)
+int sh_timer_start(sh_timer_t *timer, uint32_t now, uint32_t interval_tick)
 {
-    SH_ASSERT(self);
+    SH_ASSERT(timer);
     SH_ASSERT(interval_tick);
 
-    sh_list_remove(&self->list);
+    sh_list_remove(&timer->list);
 
     if (interval_tick > (UINT32_MAX / 2)) {
         return -1;
     }
 
-    self->enable = true;
-    self->interval_tick = interval_tick;
-    self->overtick = now + interval_tick;
+    timer->enable = true;
+    timer->interval_tick = interval_tick;
+    timer->overtick = now + interval_tick;
 
     sh_list_for_each(node, &head) {
         sh_timer_t *timer = sh_container_of(node, sh_timer_t, list);
-        if (self->overtick < timer->overtick) {
-            sh_list_insert_before(&self->list, node);
+        if (timer->overtick < timer->overtick) {
+            sh_list_insert_before(&timer->list, node);
             return 0;
         }
     }
-    sh_list_insert_before(&self->list, &head);
+    sh_list_insert_before(&timer->list, &head);
 
     return 0;
 }
 
-void sh_timer_restart(sh_timer_t *self, uint32_t now)
+void sh_timer_restart(sh_timer_t *timer, uint32_t now)
 {
-    SH_ASSERT(self);
+    SH_ASSERT(timer);
     
-    sh_timer_start(self, now, self->interval_tick);
+    sh_timer_start(timer, now, timer->interval_tick);
 }
 
-void sh_timer_stop(sh_timer_t *self)
+void sh_timer_stop(sh_timer_t *timer)
 {
-    SH_ASSERT(self);
+    SH_ASSERT(timer);
     
-    self->enable = false;
+    timer->enable = false;
 
-    sh_list_remove(&self->list);
+    sh_list_remove(&timer->list);
 }
 
 bool sh_timer_is_time_out(uint32_t now, uint32_t set_tick)

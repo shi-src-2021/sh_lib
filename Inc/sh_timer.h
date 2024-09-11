@@ -31,12 +31,12 @@ struct sh_timer {
 typedef struct sh_timer sh_timer_t;
 
 int sh_timer_sys_init(sh_timer_get_tick_fn fn);
-void sh_timer_init(sh_timer_t *self, enum sh_timer_mode mode, overtick_cb_fn cb);
-void sh_timer_set_param(sh_timer_t *self, void *param);
-void sh_timer_set_mode(sh_timer_t *self, enum sh_timer_mode mode);
-int sh_timer_start(sh_timer_t *self, uint32_t now, uint32_t interval_tick);
-void sh_timer_restart(sh_timer_t *self, uint32_t now);
-void sh_timer_stop(sh_timer_t *self);
+void sh_timer_init(sh_timer_t *timer, enum sh_timer_mode mode, overtick_cb_fn cb);
+void sh_timer_set_param(sh_timer_t *timer, void *param);
+void sh_timer_set_mode(sh_timer_t *timer, enum sh_timer_mode mode);
+int sh_timer_start(sh_timer_t *timer, uint32_t now, uint32_t interval_tick);
+void sh_timer_restart(sh_timer_t *timer, uint32_t now);
+void sh_timer_stop(sh_timer_t *timer);
 void sh_timer_loop(void);
 bool sh_timer_is_time_out(uint32_t now, uint32_t set_tick);
 
