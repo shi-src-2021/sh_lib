@@ -61,8 +61,8 @@ int sh_timer_start(sh_timer_t *timer, uint32_t now, uint32_t interval_tick)
     timer->overtick = now + interval_tick;
 
     sh_list_for_each(node, &head) {
-        sh_timer_t *timer = sh_container_of(node, sh_timer_t, list);
-        if (timer->overtick < timer->overtick) {
+        sh_timer_t *_timer = sh_container_of(node, sh_timer_t, list);
+        if (timer->overtick < _timer->overtick) {
             sh_list_insert_before(&timer->list, node);
             return 0;
         }

@@ -66,17 +66,17 @@ protected:
 };
 
 TEST_F(TEST_SH_TIMER, sh_timer_init_test) {
-    EXPECT_FALSE(sh_timer_start(&timer[0], 0, 1000));
-    EXPECT_FALSE(sh_timer_start(&timer[1], 0, 2000));
-    EXPECT_FALSE(sh_timer_start(&timer[2], 0, 5000));
-    EXPECT_FALSE(sh_timer_start(&timer[3], 0, 4000));
-    EXPECT_FALSE(sh_timer_start(&timer[4], 0, 10001));
+    EXPECT_FALSE(sh_timer_start(&timer[0], 0, 100));
+    EXPECT_FALSE(sh_timer_start(&timer[1], 0, 200));
+    EXPECT_FALSE(sh_timer_start(&timer[2], 0, 500));
+    EXPECT_FALSE(sh_timer_start(&timer[3], 0, 400));
+    EXPECT_FALSE(sh_timer_start(&timer[4], 0, 1001));
     sh_timer_set_mode(&timer[3], SH_TIMER_MODE_SINGLE);
     sh_timer_set_mode(&timer[4], SH_TIMER_MODE_SINGLE);
 
     int i = 0;
     while (1) {
-        if (i++ > 10999) {
+        if (i++ > 1099) {
             break;
         }
         sh_timer_loop();
