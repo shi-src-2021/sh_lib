@@ -154,7 +154,7 @@ sh_event_list_node_t *sh_event_server_list_find_node(sh_list_t *server_list,
     sh_list_for_each(node, server_list) {
         sh_event_list_node_t *server_node = 
             sh_container_of(node, sh_event_list_node_t, list);
-            
+
         SH_ASSERT(server_node);
         
         sh_event_server_t *_server = (sh_event_server_t*)server_node->data;
@@ -442,6 +442,20 @@ static int sh_event_execute_async_cb(sh_event_server_t   *server,
     return 0;
 }
 
+static sh_event_msg_ctrl_t *
+sh_event_get_msg_ctrl_and_free_event_node(sh_event_list_node_t *event_node)
+{
+    sh_event_msg_ctrl_t *msg_ctrl = (sh_event_msg_ctrl_t*)event_node->data;
+    if (msg_ctrl == NULL) {
+        return NULL;
+    }
+
+    sh_list_remove(&event_node->list);
+    SH_FREE(event_node);
+
+    return msg_ctrl;
+}
+
 static int _sh_event_execute(sh_event_server_t *server, bool is_cb_called)
 {
     SH_ASSERT(server);
@@ -454,19 +468,12 @@ static int _sh_event_execute(sh_event_server_t *server, bool is_cb_called)
         sh_event_list_node_t *event_node = 
             sh_container_of(node, sh_event_list_node_t, list);
 
-        sh_event_msg_ctrl_t *msg_ctrl = (sh_event_msg_ctrl_t*)event_node->data;
-        if (msg_ctrl == NULL) {
-            return -1;
-        }
+        sh_event_msg_ctrl_t *msg_ctrl = 
+            sh_event_get_msg_ctrl_and_free_event_node(event_node);
 
         if (sh_event_execute_async_cb(server, msg_ctrl, is_cb_called)) {
             return -1;
         }
-
-        sh_list_remove(node);
-
-        SH_FREE(event_node);
-        event_node = NULL;
 
         msg_ctrl->ref--;
         sh_event_check_if_msg_needs_to_free(msg_ctrl);
