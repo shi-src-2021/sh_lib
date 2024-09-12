@@ -88,19 +88,6 @@ void sh_event_map_destroy(sh_event_map_t *map)
     SH_FREE(map);
 }
 
-char* sh_event_get_event_id_name(struct sh_event_type_table *table, size_t size, uint8_t event_id)
-{
-    SH_ASSERT(table);
-    
-    for (int i = 0; i < size; i++) {
-        if (table[i].event_id == event_id) {
-            return table[i].name;
-        }
-    }
-
-    return NULL;
-}
-
 static int sh_event_server_init(sh_event_server_t *server, sh_event_map_t *map, const char *name)
 {
     SH_ASSERT(server);
@@ -544,3 +531,18 @@ int sh_event_server_get_msg_count(sh_event_server_t *server)
 
     return cnt;
 }
+
+char* sh_event_get_event_id_name(struct sh_event_type_table *table, size_t size, uint8_t event_id)
+{
+    SH_ASSERT(table);
+    
+    for (int i = 0; i < size; i++) {
+        if (table[i].event_id == event_id) {
+            return table[i].name;
+        }
+    }
+
+    return NULL;
+}
+
+
