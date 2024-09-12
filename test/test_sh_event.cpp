@@ -102,20 +102,32 @@ TEST_F(TEST_SH_EVENT, sync_sub_mode_test) {
     EXPECT_EQ(0, enter_cnt);
     EXPECT_EQ(0, exit_cnt);
 
+    EXPECT_EQ(1, sh_event_server_get_msg_count(server1));
+    EXPECT_EQ(0, sh_event_server_get_msg_count(server2));
+
     ASSERT_EQ(0, sh_event_publish(map, SH_EVENT_INIT));
     EXPECT_EQ(1, init_cnt);
     EXPECT_EQ(0, enter_cnt);
     EXPECT_EQ(0, exit_cnt);
+
+    EXPECT_EQ(1, sh_event_server_get_msg_count(server1));
+    EXPECT_EQ(1, sh_event_server_get_msg_count(server2));
 
     ASSERT_EQ(0, sh_event_execute(server1));
     EXPECT_EQ(1, init_cnt);
     EXPECT_EQ(1, enter_cnt);
     EXPECT_EQ(0, exit_cnt);
 
+    EXPECT_EQ(0, sh_event_server_get_msg_count(server1));
+    EXPECT_EQ(1, sh_event_server_get_msg_count(server2));
+
     ASSERT_EQ(0, sh_event_execute(server2));
     EXPECT_EQ(2, init_cnt);
     EXPECT_EQ(1, enter_cnt);
     EXPECT_EQ(0, exit_cnt);
+
+    EXPECT_EQ(0, sh_event_server_get_msg_count(server1));
+    EXPECT_EQ(0, sh_event_server_get_msg_count(server2));
 
     ASSERT_EQ(0, sh_event_unsubscribe(server1, SH_EVENT_INIT));
     ASSERT_EQ(0, sh_event_unsubscribe(server1, SH_EVENT_ENTER));
@@ -135,17 +147,14 @@ TEST_F(TEST_SH_EVENT, async_sub_mode_test) {
     EXPECT_EQ(0, enter_cnt);
     EXPECT_EQ(0, exit_cnt);
 
-    ASSERT_EQ(0, sh_list_isempty(&server1->event_queue));
-    int cnt = 0;
-    sh_list_for_each(node, &server1->event_queue) {
-        cnt++;
-    }
-    EXPECT_EQ(2, cnt);
+    EXPECT_EQ(2, sh_event_server_get_msg_count(server1));
 
     ASSERT_EQ(0, sh_event_execute(server1));
     EXPECT_EQ(1, init_cnt);
     EXPECT_EQ(1, enter_cnt);
     EXPECT_EQ(0, exit_cnt);
+
+    EXPECT_EQ(0, sh_event_server_get_msg_count(server1));
 
     ASSERT_EQ(0, sh_event_unsubscribe(server1, SH_EVENT_INIT));
     ASSERT_EQ(0, sh_event_unsubscribe(server1, SH_EVENT_ENTER));
@@ -167,10 +176,14 @@ TEST_F(TEST_SH_EVENT, repeat_sub_and_msg_str_test) {
     EXPECT_EQ(0, enter_cnt);
     EXPECT_EQ(0, exit_cnt);
 
+    EXPECT_EQ(3, sh_event_server_get_msg_count(server1));
+
     ASSERT_EQ(0, sh_event_execute(server1));
     EXPECT_EQ(2, init_cnt);
     EXPECT_EQ(0, enter_cnt);
     EXPECT_EQ(1, exit_cnt);
+
+    EXPECT_EQ(0, sh_event_server_get_msg_count(server1));
 
     ASSERT_EQ(0, sh_event_subscribe(server1, SH_EVENT_ENTER, test_event_cb));
     ASSERT_EQ(0, sh_event_unsubscribe(server1, SH_EVENT_INIT));
@@ -180,19 +193,27 @@ TEST_F(TEST_SH_EVENT, repeat_sub_and_msg_str_test) {
     EXPECT_EQ(2, init_cnt);
     EXPECT_EQ(0, enter_cnt);
     EXPECT_EQ(1, exit_cnt);
+    
+    EXPECT_EQ(1, sh_event_server_get_msg_count(server1));
 
     ASSERT_EQ(0, sh_event_execute(server1));
     EXPECT_EQ(2, init_cnt);
     EXPECT_EQ(1, enter_cnt);
     EXPECT_EQ(1, exit_cnt);
 
+    EXPECT_EQ(0, sh_event_server_get_msg_count(server1));
+
     ASSERT_EQ(0, sh_event_publish(map, SH_EVENT_INIT));
     ASSERT_EQ(0, sh_event_publish(map, SH_EVENT_EXIT));
+    
+    EXPECT_EQ(1, sh_event_server_get_msg_count(server1));
 
     ASSERT_EQ(0, sh_event_execute(server1));
     EXPECT_EQ(2, init_cnt);
     EXPECT_EQ(1, enter_cnt);
     EXPECT_EQ(2, exit_cnt);
+    
+    EXPECT_EQ(0, sh_event_server_get_msg_count(server1));
 
     ASSERT_EQ(0, sh_event_unsubscribe(server1, SH_EVENT_INIT));
     ASSERT_EQ(0, sh_event_unsubscribe(server1, SH_EVENT_ENTER));

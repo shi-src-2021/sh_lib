@@ -529,3 +529,18 @@ static int sh_event_get_index_by_id(sh_event_map_t *map, uint8_t id, uint8_t *in
 
     return -1;
 }
+
+int sh_event_server_get_msg_count(sh_event_server_t *server)
+{
+    if (server == NULL) {
+        return -1;
+    }
+
+    int cnt = 0;
+
+    sh_list_for_each(node, &server->event_queue) {
+        cnt++;
+    }
+
+    return cnt;
+}
