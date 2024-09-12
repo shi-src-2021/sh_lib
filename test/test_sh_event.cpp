@@ -74,6 +74,9 @@ protected:
         ASSERT_NE(nullptr, map);
         ASSERT_NE(nullptr, server1);
         ASSERT_NE(nullptr, server2);
+
+        sh_event_server_start(server1);
+        sh_event_server_start(server2);
     }
 
     void TearDown()

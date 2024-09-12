@@ -52,6 +52,7 @@ typedef void(*event_cb)(const sh_event_msg_t *e);
 struct sh_event_server {
     sh_event_obj_t  obj;
     sh_list_t       event_queue;
+    bool            enable;
     event_cb       *cb;
     uint8_t        *sub_mode;
     sh_event_map_t *map;
@@ -63,6 +64,8 @@ sh_event_map_t* sh_event_map_create(struct sh_event_type_table *table, size_t si
 void sh_event_map_destroy(sh_event_map_t *map);
 sh_event_server_t* sh_event_server_create(sh_event_map_t *map, const char *name);
 void sh_event_server_destroy(sh_event_server_t *server);
+int sh_event_server_start(sh_event_server_t *server);
+int sh_event_server_stop(sh_event_server_t *server);
 int sh_event_subscribe_sync(sh_event_server_t *server, uint8_t event_id, event_cb cb);
 int sh_event_subscribe(sh_event_server_t *server, uint8_t event_id, event_cb cb);
 int sh_event_unsubscribe(sh_event_server_t *server, uint8_t event_id);

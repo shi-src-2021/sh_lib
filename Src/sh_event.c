@@ -102,6 +102,7 @@ static int sh_event_server_init(sh_event_server_t *server,
     sh_list_init(&server->event_queue);
 
     server->map = map;
+    server->enable = false;
 
     return sh_event_obj_init((sh_event_obj_t *)server, name);
 }
@@ -198,6 +199,24 @@ void sh_event_server_destroy(sh_event_server_t *server)
     SH_FREE(server);
 }
 
+int sh_event_server_start(sh_event_server_t *server)
+{
+    if (server == NULL) {
+        return -1;
+    }
+
+    server->enable = true;
+}
+
+int sh_event_server_stop(sh_event_server_t *server)
+{
+    if (server == NULL) {
+        return -1;
+    }
+
+    server->enable = false;
+}
+
 static int _sh_event_subscribe(sh_event_server_t *server, 
                                uint8_t event_id, 
                                event_cb cb, 
@@ -282,6 +301,9 @@ static bool sh_event_execute_sync_cb(sh_event_server_t *server,
     SH_ASSERT(msg);
     
     if (server->sub_mode[index] == SH_EVENT_SUB_SYNC) {
+        if (!server->enable) {
+            return true;
+        }
         if (server->cb[index] != NULL) {
             server->cb[index](msg);
         }
@@ -379,6 +401,10 @@ int sh_event_publish_with_param(sh_event_map_t *map,
 
         sh_event_server_t *server = (sh_event_server_t*)server_node->data;
 
+        if (!server->enable) {
+            continue;
+        }
+
         uint8_t index = 0;
         if (sh_event_get_index_by_id(server->map, event_id, &index)) {
             return -1;
@@ -433,6 +459,11 @@ static int sh_event_execute_async_cb(sh_event_server_t   *server,
     if (sh_event_get_index_by_id(server->map, msg_ctrl->msg.id, &index)) {
         return -1;
     }
+
+    if (!server->enable) {
+        return 0;
+    }
+
     if (is_cb_called) {
         if (server->cb[index] != NULL) {
             server->cb[index](&msg_ctrl->msg);
