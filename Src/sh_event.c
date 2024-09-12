@@ -38,7 +38,6 @@ typedef struct sh_event_msg_ctrl sh_event_msg_ctrl_t;
 
 static int sh_event_obj_init(sh_event_obj_t *obj, const char *name);
 static sh_event_list_node_t* sh_event_list_node_create(void *data);
-static sh_event_msg_ctrl_t* sh_event_msg_create(uint8_t event_id, void *data, size_t size);
 static sh_event_t *sh_event_get_event_by_id(sh_event_map_t *map, uint8_t id);
 static int sh_event_get_index_by_id(sh_event_map_t *map, uint8_t id, uint8_t *index);
 static int _sh_event_execute(sh_event_server_t *server, bool is_cb_called);
@@ -88,7 +87,9 @@ void sh_event_map_destroy(sh_event_map_t *map)
     SH_FREE(map);
 }
 
-static int sh_event_server_init(sh_event_server_t *server, sh_event_map_t *map, const char *name)
+static int sh_event_server_init(sh_event_server_t *server, 
+                                sh_event_map_t *map, 
+                                const char *name)
 {
     SH_ASSERT(server);
     SH_ASSERT(map);
@@ -144,13 +145,16 @@ free_server:
     return NULL;
 }
 
-sh_event_list_node_t *sh_event_server_list_find_node(sh_list_t *server_list, sh_event_server_t *server)
+sh_event_list_node_t *sh_event_server_list_find_node(sh_list_t *server_list,
+                                                     sh_event_server_t *server)
 {
     SH_ASSERT(server_list);
     SH_ASSERT(server);
 
     sh_list_for_each(node, server_list) {
-        sh_event_list_node_t *server_node = sh_container_of(node, sh_event_list_node_t, list);
+        sh_event_list_node_t *server_node = 
+            sh_container_of(node, sh_event_list_node_t, list);
+            
         SH_ASSERT(server_node);
         
         sh_event_server_t *_server = (sh_event_server_t*)server_node->data;
@@ -179,7 +183,8 @@ void sh_event_server_destroy(sh_event_server_t *server)
 
     sh_list_for_each(node, &server->map->obj.list) {
         sh_event_t *event = (sh_event_t*)sh_container_of(node, sh_event_obj_t, list);
-        sh_event_list_node_t *server_node = sh_event_server_list_find_node(&event->server, server);
+        sh_event_list_node_t *server_node = 
+            sh_event_server_list_find_node(&event->server, server);
         if (server_node == NULL) {
             continue;
         }
@@ -193,7 +198,10 @@ void sh_event_server_destroy(sh_event_server_t *server)
     SH_FREE(server);
 }
 
-static int _sh_event_subscribe(sh_event_server_t *server, uint8_t event_id, event_cb cb, uint8_t sub_mode)
+static int _sh_event_subscribe(sh_event_server_t *server, 
+                               uint8_t event_id, 
+                               event_cb cb, 
+                               uint8_t sub_mode)
 {
     SH_ASSERT(server);
 
@@ -266,7 +274,9 @@ int sh_event_unsubscribe(sh_event_server_t *server, uint8_t event_id)
     return 0;
 }
 
-static bool sh_event_execute_sync_cb(sh_event_server_t *server, uint8_t index, sh_event_msg_t *msg)
+static bool sh_event_execute_sync_cb(sh_event_server_t *server,
+                                     uint8_t index, 
+                                     sh_event_msg_t *msg)
 {
     SH_ASSERT(server);
     SH_ASSERT(msg);
@@ -281,7 +291,8 @@ static bool sh_event_execute_sync_cb(sh_event_server_t *server, uint8_t index, s
     return false;
 }
 
-static int sh_event_server_save_msg(sh_event_server_t *server, sh_event_msg_ctrl_t *msg_ctrl)
+static int sh_event_server_save_msg(sh_event_server_t *server,
+                                    sh_event_msg_ctrl_t *msg_ctrl)
 {
     SH_ASSERT(server);
     SH_ASSERT(msg_ctrl);
@@ -312,7 +323,39 @@ static void sh_event_check_if_msg_needs_to_free(sh_event_msg_ctrl_t *msg_ctrl)
     }
 }
 
-int sh_event_publish_with_param(sh_event_map_t *map, uint8_t event_id, void *data, size_t size)
+static sh_event_msg_ctrl_t* sh_event_msg_create(uint8_t event_id, 
+                                                void *data, 
+                                                size_t size)
+{
+    uint8_t *_data = NULL;
+
+    sh_event_msg_ctrl_t *event_ctrl = 
+        (sh_event_msg_ctrl_t*)SH_MALLOC(sizeof(sh_event_msg_ctrl_t));
+    
+    if (event_ctrl == NULL) {
+        return NULL;
+    }
+
+    if (data) {
+        _data = SH_MALLOC(size);
+        if (_data == NULL) {
+            return NULL;
+        }
+        memcpy(_data, data, size);
+    }
+
+    event_ctrl->msg.id          = event_id;
+    event_ctrl->msg.data        = _data;
+    event_ctrl->msg.data_size   = size;
+    event_ctrl->ref             = 0;
+
+    return event_ctrl;
+}
+
+int sh_event_publish_with_param(sh_event_map_t *map,
+                                uint8_t event_id, 
+                                void *data, 
+                                size_t size)
 {
     SH_ASSERT(map);
 
@@ -331,7 +374,9 @@ int sh_event_publish_with_param(sh_event_map_t *map, uint8_t event_id, void *dat
     }
 
     sh_list_for_each(node, &event->server) {
-        sh_event_list_node_t *server_node = sh_container_of(node, sh_event_list_node_t, list);
+        sh_event_list_node_t *server_node = 
+            sh_container_of(node, sh_event_list_node_t, list);
+
         sh_event_server_t *server = (sh_event_server_t*)server_node->data;
 
         uint8_t index = 0;
@@ -406,7 +451,9 @@ static int _sh_event_execute(sh_event_server_t *server, bool is_cb_called)
     }
 
     sh_list_for_each_safe(node, &server->event_queue) {
-        sh_event_list_node_t *event_node = sh_container_of(node, sh_event_list_node_t, list);
+        sh_event_list_node_t *event_node = 
+            sh_container_of(node, sh_event_list_node_t, list);
+
         sh_event_msg_ctrl_t *msg_ctrl = (sh_event_msg_ctrl_t*)event_node->data;
         if (msg_ctrl == NULL) {
             return -1;
@@ -444,7 +491,9 @@ static int sh_event_obj_init(sh_event_obj_t *obj, const char *name)
 
 static sh_event_list_node_t* sh_event_list_node_create(void *data)
 {
-    sh_event_list_node_t *node = (sh_event_list_node_t*)SH_MALLOC(sizeof(sh_event_list_node_t));
+    sh_event_list_node_t *node = 
+        (sh_event_list_node_t*)SH_MALLOC(sizeof(sh_event_list_node_t));
+
     if (node == NULL) {
         return NULL;
     }
@@ -453,33 +502,6 @@ static sh_event_list_node_t* sh_event_list_node_create(void *data)
     node->data = data;
 
     return node;
-}
-
-static sh_event_msg_ctrl_t* sh_event_msg_create(uint8_t event_id, void *data, size_t size)
-{
-    uint8_t *_data = NULL;
-
-    sh_event_msg_ctrl_t *event_ctrl = 
-        (sh_event_msg_ctrl_t*)SH_MALLOC(sizeof(sh_event_msg_ctrl_t));
-    
-    if (event_ctrl == NULL) {
-        return NULL;
-    }
-
-    if (data) {
-        _data = SH_MALLOC(size);
-        if (_data == NULL) {
-            return NULL;
-        }
-        memcpy(_data, data, size);
-    }
-
-    event_ctrl->msg.id          = event_id;
-    event_ctrl->msg.data        = _data;
-    event_ctrl->msg.data_size   = size;
-    event_ctrl->ref             = 0;
-
-    return event_ctrl;
 }
 
 static sh_event_t *sh_event_get_event_by_id(sh_event_map_t *map, uint8_t id)
@@ -504,7 +526,7 @@ static int sh_event_get_index_by_id(sh_event_map_t *map, uint8_t id, uint8_t *in
     uint8_t _index = 0;
 
     sh_list_for_each(node, &map->obj.list) {
-        sh_event_t *event = (sh_event_t *)sh_container_of(node, sh_event_obj_t, list);
+        sh_event_t *event = (sh_event_t*)sh_container_of(node, sh_event_obj_t, list);
 
         if (event->id == id) {
             *index = _index;
@@ -532,7 +554,9 @@ int sh_event_server_get_msg_count(sh_event_server_t *server)
     return cnt;
 }
 
-char* sh_event_get_event_id_name(struct sh_event_type_table *table, size_t size, uint8_t event_id)
+char* sh_event_get_event_id_name(struct sh_event_type_table *table, 
+                                 size_t size, 
+                                 uint8_t event_id)
 {
     SH_ASSERT(table);
     
