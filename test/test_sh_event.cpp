@@ -78,9 +78,9 @@ protected:
 
     void TearDown()
     {
-        sh_event_map_destroy(map);
         sh_event_server_destroy(server1);
         sh_event_server_destroy(server2);
+        sh_event_map_destroy(map);
         
         EXPECT_EQ(mem_size, sh_get_free_size());
     }
