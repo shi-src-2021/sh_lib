@@ -2,6 +2,7 @@
 #define __SH_EVENT_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "sh_list.h"
 #include "sh_mem.h"
