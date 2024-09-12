@@ -206,6 +206,8 @@ int sh_event_server_start(sh_event_server_t *server)
     }
 
     server->enable = true;
+
+    return 0;
 }
 
 int sh_event_server_stop(sh_event_server_t *server)
@@ -215,6 +217,8 @@ int sh_event_server_stop(sh_event_server_t *server)
     }
 
     server->enable = false;
+
+    return 0;
 }
 
 static int _sh_event_subscribe(sh_event_server_t *server, 
