@@ -11,11 +11,6 @@ enum sh_button_system_state {
     SH_BUTTON_STATE_LONG_PRESS,
 };
 
-enum sh_button_press_state {
-    SH_BUTTON_PRESS,
-    SH_BUTTON_RELEASE,
-};
-
 int sh_button_init(struct sh_button *button,
                    char *name, 
                    enum sh_button_active_level active_level, 
@@ -258,5 +253,13 @@ uint8_t sh_button_get_level(struct sh_button *button)
     return button->get_button_level(button->id);
 }
 
+enum sh_button_press_state 
+sh_button_get_current_press_state(struct sh_button *button)
+{
+    SH_ASSERT(button);
+    SH_ASSERT(button->get_button_level);
 
+    return button->get_button_level(button->id) == button->active_level ? 
+                SH_BUTTON_PRESS : SH_BUTTON_RELEASE;
+}
 
