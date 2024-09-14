@@ -12,6 +12,11 @@ extern "C" {
 #define SH_BUTTON_NAME_MAX_LEN  16
 #define SH_BUTTON_REPEAT_MAX    7
 
+enum sh_button_active_level {
+    SH_BUTTON_ACTIVE_LOW = 0,
+    SH_BUTTON_ACTIVE_HIGH,
+};
+
 enum sh_button_event {
     SH_BUTTON_EVENT_PRESS = 0,
     SH_BUTTON_EVENT_RELEASE,
@@ -65,7 +70,7 @@ int sh_button_ctrl_default_init(sh_button_ctrl_t *button_ctrl);
 int sh_button_ctrl_add(sh_button_ctrl_t *button_ctrl, struct sh_button *button);
 int sh_button_init(struct sh_button *button,
                    char *name, 
-                   uint8_t active_level, 
+                   enum sh_button_active_level active_level, 
                    get_button_level_fn get_button_level, 
                    uint8_t id);
 int sh_button_attach_cb(struct sh_button *button, 
@@ -74,6 +79,7 @@ int sh_button_attach_cb(struct sh_button *button,
 int sh_button_detach_cb(struct sh_button *button,
                         enum sh_button_event event_id);
 int sh_button_handler(sh_button_ctrl_t *button_ctrl);
+uint8_t sh_button_get_level(struct sh_button *button);
 
 #ifdef __cplusplus
 }   /* extern "C" */ 

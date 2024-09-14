@@ -8,7 +8,6 @@ enum sh_button_system_state {
     SH_BUTTON_STATE_IDLE = 0,
     SH_BUTTON_STATE_PRESS,
     SH_BUTTON_STATE_RELEASE,
-    SH_BUTTON_STATE_REPEAT,
     SH_BUTTON_STATE_LONG_PRESS,
 };
 
@@ -19,7 +18,7 @@ enum sh_button_press_state {
 
 int sh_button_init(struct sh_button *button,
                    char *name, 
-                   uint8_t active_level, 
+                   enum sh_button_active_level active_level, 
                    get_button_level_fn get_button_level, 
                    uint8_t id)
 {
@@ -158,6 +157,19 @@ static int sh_button_invoke_cb(struct sh_button *button,
     return 0;
 }
 
+static void sh_button_trans_to_state(struct sh_button *button, uint8_t state)
+{
+    button->state = state;
+    button->ticks = 0;
+}
+
+#define invoke_cd_and_update_state(event, state)                        \
+            do {                                                        \
+                sh_button_invoke_cb(button, SH_BUTTON_##event);         \
+                sh_button_trans_to_state(button, SH_BUTTON_##state);    \
+            } while (0);
+            
+
 static void sh_button_state_machine_process(struct sh_button *button,
                                             sh_button_ctrl_t *button_ctrl)
 {
@@ -168,9 +180,7 @@ static void sh_button_state_machine_process(struct sh_button *button,
     {
     case SH_BUTTON_STATE_IDLE:
         if (sh_button_get_press_state(button) == SH_BUTTON_PRESS) {
-            sh_button_invoke_cb(button, SH_BUTTON_EVENT_PRESS);
-            button->state = SH_BUTTON_STATE_PRESS;
-            button->ticks = 0;
+            invoke_cd_and_update_state(EVENT_PRESS, STATE_PRESS);
             button->repeat = 1;
         }
         break;
@@ -178,14 +188,10 @@ static void sh_button_state_machine_process(struct sh_button *button,
     case SH_BUTTON_STATE_PRESS:
         button->ticks++;
         if (sh_button_get_press_state(button) == SH_BUTTON_RELEASE) {
-            sh_button_invoke_cb(button, SH_BUTTON_EVENT_RELEASE);
-            button->state = SH_BUTTON_STATE_RELEASE;
-            button->ticks = 0;
+            invoke_cd_and_update_state(EVENT_RELEASE, STATE_RELEASE);
         }
         if (button->ticks >= button_ctrl->long_press_ticks) {
-            sh_button_invoke_cb(button, SH_BUTTON_EVENT_LONG_PRESS_START);
-            button->state = SH_BUTTON_STATE_LONG_PRESS;
-            button->ticks = 0;
+            invoke_cd_and_update_state(EVENT_LONG_PRESS_START, STATE_LONG_PRESS);
         }
         break;
 
@@ -195,20 +201,16 @@ static void sh_button_state_machine_process(struct sh_button *button,
             if (button->repeat < SH_BUTTON_REPEAT_MAX) {
                 button->repeat++;
             }
-            sh_button_invoke_cb(button, SH_BUTTON_EVENT_PRESS);
-            button->state = SH_BUTTON_STATE_PRESS;
-            button->ticks = 0;
+            invoke_cd_and_update_state(EVENT_PRESS, STATE_PRESS);
         }
         if (button->ticks >=  button_ctrl->release_timeout_ticks) {
             if (button->repeat == 1) {
-                sh_button_invoke_cb(button, SH_BUTTON_EVENT_SINGLE_CLICK);
+                invoke_cd_and_update_state(EVENT_SINGLE_CLICK, STATE_IDLE);
             } else if (button->repeat == 2) {
-                sh_button_invoke_cb(button, SH_BUTTON_EVENT_DOUBLE_CLICK);
+                invoke_cd_and_update_state(EVENT_DOUBLE_CLICK, STATE_IDLE);
             } else {
-                sh_button_invoke_cb(button, SH_BUTTON_EVENT_MULTI_CLICK);
+                invoke_cd_and_update_state(EVENT_MULTI_CLICK, STATE_IDLE);
             }
-            button->state = SH_BUTTON_STATE_IDLE;
-            button->ticks = 0;
         }
         
         break;
@@ -216,14 +218,10 @@ static void sh_button_state_machine_process(struct sh_button *button,
     case SH_BUTTON_STATE_LONG_PRESS:
         button->ticks++;
         if (sh_button_get_press_state(button) == SH_BUTTON_RELEASE) {
-            sh_button_invoke_cb(button, SH_BUTTON_EVENT_RELEASE);
-            button->state = SH_BUTTON_STATE_IDLE;
-            button->ticks = 0;
+            invoke_cd_and_update_state(EVENT_RELEASE, STATE_IDLE);
         }
         if (button->ticks >=  button_ctrl->long_press_repeat_ticks) {
-            sh_button_invoke_cb(button, SH_BUTTON_EVENT_LONG_PRESS_REPEAT);
-            button->state = SH_BUTTON_STATE_LONG_PRESS;
-            button->ticks = 0;
+            invoke_cd_and_update_state(EVENT_LONG_PRESS_REPEAT, STATE_LONG_PRESS);
         }
         
         break;
@@ -252,7 +250,13 @@ int sh_button_handler(sh_button_ctrl_t *button_ctrl)
     return 0;
 }
 
+uint8_t sh_button_get_level(struct sh_button *button)
+{
+    SH_ASSERT(button);
+    SH_ASSERT(button->get_button_level);
 
+    return button->get_button_level(button->id);
+}
 
 
 
