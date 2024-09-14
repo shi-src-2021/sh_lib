@@ -17,6 +17,11 @@ enum sh_button_active_level {
     SH_BUTTON_ACTIVE_HIGH,
 };
 
+enum sh_button_press_state {
+    SH_BUTTON_PRESS,
+    SH_BUTTON_RELEASE,
+};
+
 enum sh_button_event {
     SH_BUTTON_EVENT_PRESS = 0,
     SH_BUTTON_EVENT_RELEASE,
@@ -80,6 +85,8 @@ int sh_button_detach_cb(struct sh_button *button,
                         enum sh_button_event event_id);
 int sh_button_handler(sh_button_ctrl_t *button_ctrl);
 uint8_t sh_button_get_level(struct sh_button *button);
+enum sh_button_press_state 
+sh_button_get_current_press_state(struct sh_button *button);
 
 #ifdef __cplusplus
 }   /* extern "C" */ 
