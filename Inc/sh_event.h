@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#define SH_EVENT_NAME_MAX   24
+#define SH_EVENT_NAME_MAX   16
 
 #define SH_MALLOC           sh_malloc
 #define SH_FREE             sh_free

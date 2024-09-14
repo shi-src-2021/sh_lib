@@ -129,6 +129,10 @@ bool sh_timer_is_time_out(uint32_t now, uint32_t set_tick)
 
 void sh_timer_loop(sh_list_t *head)
 {
+    if (head == NULL) {
+        return;
+    }
+
     SH_ASSERT(sh_timer_get_tick);
 
     uint32_t current_tick = sh_timer_get_tick();
