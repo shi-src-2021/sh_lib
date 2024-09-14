@@ -1,15 +1,16 @@
+#include <stdbool.h>
+
 #include "sh_mem.h"
 #include "tlsf.h"
 
 static tlsf_t  tlsf = NULL;
 static char mem_pool[MEM_POOL_SIZE];
+static bool is_mem_created = false;
 
 void* sh_malloc(size_t size)
 {
-    static char first_flag = 1;
-
-    if (first_flag == 1) {
-        first_flag = 0;
+    if (is_mem_created == false) {
+        is_mem_created = true;
         tlsf = tlsf_create_with_pool(mem_pool, sizeof(mem_pool));
     }
 
@@ -28,8 +29,9 @@ void sh_free(void* ptr)
 
 int sh_get_free_size(void)
 {
-    if (tlsf == NULL) {
-        return -1;
+    if (is_mem_created == false) {
+        is_mem_created = true;
+        tlsf = tlsf_create_with_pool(mem_pool, sizeof(mem_pool));
     }
     
     return (int)tlsf_get_free_size(tlsf);

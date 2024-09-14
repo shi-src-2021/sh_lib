@@ -7,7 +7,7 @@ using namespace testing;
 
 TEST(TEST_SH_MEM, malloc_and_free_test) {
     int free_size = sh_get_free_size();
-    EXPECT_EQ(-1, free_size);
+    EXPECT_TRUE(free_size);
 
     void *addr = sh_malloc(300);
     ASSERT_NE(addr, nullptr);
