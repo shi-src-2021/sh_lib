@@ -521,11 +521,7 @@ static int sh_event_obj_init(sh_event_obj_t *obj, const char *name)
 {
     SH_ASSERT(obj);
     
-    if (strlen(name) >= SH_EVENT_NAME_MAX) {
-        return -1;
-    }
-
-    strcpy(obj->name, name);
+    strncpy(obj->name, name, SH_EVENT_NAME_MAX - 1);
     sh_list_init(&obj->list);
 
     return 0;

@@ -252,3 +252,11 @@ TEST_F(TEST_SH_EVENT, server_clear_msg_test) {
     ASSERT_EQ(0, sh_event_unsubscribe(server1, SH_EVENT_ENTER));
     ASSERT_EQ(0, sh_event_unsubscribe(server1, SH_EVENT_EXIT));
 }
+
+TEST_F(TEST_SH_EVENT, server_name_max_len_test) {
+    sh_event_server_t *server = sh_event_server_create(map, "123456789012345678901234567890");
+    EXPECT_EQ(0, server->obj.name[SH_EVENT_NAME_MAX - 1]);
+    printf(server->obj.name);    
+    sh_event_server_destroy(server);
+}
+
