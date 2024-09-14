@@ -32,14 +32,16 @@ int sh_button_init(struct sh_button *button,
     button->repeat = 0;
     button->state = SH_BUTTON_STATE_IDLE;
     button->debounce_cnt = 0;
-    button->active_level = active_level;
-    button->current_level = !active_level;
+    button->active_level = (!!active_level);
+    button->current_level = !button->active_level;
     button->id = id;
     button->get_button_level = get_button_level;
 
     for (int i = 0; i < SH_BUTTON_EVENT_MAX; i++) {
         button->cb[i] = NULL;
     }
+
+    return 0;
 }
 
 int sh_button_attach_cb(struct sh_button *button, 
@@ -53,6 +55,8 @@ int sh_button_attach_cb(struct sh_button *button,
     }
 
     button->cb[event_id] = cb;
+
+    return 0;
 }
 
 int sh_button_detach_cb(struct sh_button *button,
@@ -83,14 +87,30 @@ int sh_button_ctrl_init(sh_button_ctrl_t *button_ctrl,
     button_ctrl->long_press_ticks = 
         (long_press_ms + invoke_interval_ms - 1) / invoke_interval_ms;
     button_ctrl->long_press_repeat_ticks = long_press_repeat_ticks;
+
+    return 0;
 }
 
-int sh_button_ctrl_add(sh_list_t *head, struct sh_button *button)
+int sh_button_ctrl_default_init(sh_button_ctrl_t *button_ctrl)
 {
-    SH_ASSERT(head);
+    SH_ASSERT(button_ctrl);
+
+    sh_list_init(&button_ctrl->head);
+    button_ctrl->invoke_interval_ms = 1;
+    button_ctrl->debounce_ticks = 8;
+    button_ctrl->release_timeout_ticks = 300;
+    button_ctrl->long_press_ticks = 1000;
+    button_ctrl->long_press_repeat_ticks = 200;
+
+    return 0;
+}
+
+int sh_button_ctrl_add(sh_button_ctrl_t *button_ctrl, struct sh_button *button)
+{
+    SH_ASSERT(button_ctrl);
     SH_ASSERT(button);
 
-    sh_list_insert_before(&button->list, head);
+    sh_list_insert_before(&button->list, &button_ctrl->head);
 
     return 0;
 }
@@ -116,6 +136,8 @@ static int sh_button_debounce(struct sh_button *button, uint8_t debounce_ticks)
     } else {
         button->debounce_cnt = 0;
     }
+
+    return 0;
 }
 
 static int sh_button_invoke_cb(struct sh_button *button,
@@ -126,6 +148,8 @@ static int sh_button_invoke_cb(struct sh_button *button,
     if (event_id >= SH_BUTTON_EVENT_MAX) {
         return -1;
     }
+
+    button->event = event_id;
 
     if (button->cb[event_id]) {
         button->cb[event_id](button);
@@ -152,6 +176,7 @@ static void sh_button_state_machine_process(struct sh_button *button,
         break;
 
     case SH_BUTTON_STATE_PRESS:
+        button->ticks++;
         if (sh_button_get_press_state(button) == SH_BUTTON_RELEASE) {
             sh_button_invoke_cb(button, SH_BUTTON_EVENT_RELEASE);
             button->state = SH_BUTTON_STATE_RELEASE;
@@ -165,6 +190,7 @@ static void sh_button_state_machine_process(struct sh_button *button,
         break;
 
     case SH_BUTTON_STATE_RELEASE:
+        button->ticks++;
         if (sh_button_get_press_state(button) == SH_BUTTON_PRESS) {
             if (button->repeat < SH_BUTTON_REPEAT_MAX) {
                 button->repeat++;
@@ -188,6 +214,7 @@ static void sh_button_state_machine_process(struct sh_button *button,
         break;
     
     case SH_BUTTON_STATE_LONG_PRESS:
+        button->ticks++;
         if (sh_button_get_press_state(button) == SH_BUTTON_RELEASE) {
             sh_button_invoke_cb(button, SH_BUTTON_EVENT_RELEASE);
             button->state = SH_BUTTON_STATE_IDLE;
@@ -210,7 +237,7 @@ int sh_button_handler(sh_button_ctrl_t *button_ctrl)
 {
     SH_ASSERT(button_ctrl);
 
-    if (sh_list_isempty(button_ctrl)) {
+    if (sh_list_isempty(&button_ctrl->head)) {
         return 0;
     }
     

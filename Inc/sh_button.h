@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 #define SH_BUTTON_NAME_MAX_LEN  16
-#define SH_BUTTON_REPEAT_MAX    8
+#define SH_BUTTON_REPEAT_MAX    7
 
 enum sh_button_event {
     SH_BUTTON_EVENT_PRESS = 0,
@@ -34,10 +34,11 @@ struct sh_button {
     sh_list_t   list;
     uint16_t    ticks;
 	uint8_t     debounce_cnt : 4;
+    uint8_t     event : 4;
 	uint8_t     state : 3;
+    uint8_t     repeat : 3;
 	uint8_t     active_level : 1;
 	uint8_t     current_level : 1;
-    uint8_t     repeat : 3;
     uint8_t     id;
     button_cb_fn cb[SH_BUTTON_EVENT_MAX];
     get_button_level_fn get_button_level;
@@ -60,7 +61,8 @@ int sh_button_ctrl_init(sh_button_ctrl_t *button_ctrl,
                         uint16_t long_press_ms,
                         uint8_t long_press_repeat_ticks,
                         uint8_t debounce_ticks);
-int sh_button_ctrl_add(sh_list_t *head, struct sh_button *button);
+int sh_button_ctrl_default_init(sh_button_ctrl_t *button_ctrl);
+int sh_button_ctrl_add(sh_button_ctrl_t *button_ctrl, struct sh_button *button);
 int sh_button_init(struct sh_button *button,
                    char *name, 
                    uint8_t active_level, 
