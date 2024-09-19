@@ -110,7 +110,6 @@ static int sh_event_server_init(sh_event_server_t *server,
 sh_event_server_t* sh_event_server_create(sh_event_map_t *map, const char *name)
 {
     SH_ASSERT(map);
-    SH_ASSERT(name);
 
     sh_event_server_t *server = SH_MALLOC(sizeof(sh_event_server_t));
     if (server == NULL) {
