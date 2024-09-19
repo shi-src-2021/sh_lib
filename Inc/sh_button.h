@@ -65,28 +65,27 @@ struct sh_button_ctrl {
 
 typedef struct sh_button_ctrl sh_button_ctrl_t;
 
-int sh_button_ctrl_init(sh_button_ctrl_t *button_ctrl,
-                        uint8_t invoke_interval_ms,
-                        uint16_t release_timeout_ms,
-                        uint16_t long_press_ms,
-                        uint8_t long_press_repeat_ticks,
-                        uint8_t debounce_ticks);
+/* button controller */
+int sh_button_ctrl_init(sh_button_ctrl_t *button_ctrl, uint8_t invoke_interval_ms,
+                        uint16_t release_timeout_ms, uint16_t long_press_ms,
+                        uint8_t long_press_repeat_ticks, uint8_t debounce_ticks);
 int sh_button_ctrl_default_init(sh_button_ctrl_t *button_ctrl);
 int sh_button_ctrl_add(sh_button_ctrl_t *button_ctrl, struct sh_button *button);
-int sh_button_init(struct sh_button *button,
-                   char *name, 
+
+/* button object */
+int sh_button_init(struct sh_button *button, char *name, 
                    enum sh_button_active_level active_level, 
-                   get_button_level_fn get_button_level, 
-                   uint8_t id);
-int sh_button_attach_cb(struct sh_button *button, 
-                        enum sh_button_event event_id, 
+                   get_button_level_fn get_button_level, uint8_t id);
+int sh_button_attach_cb(struct sh_button *button, enum sh_button_event event_id, 
                         button_cb_fn cb);
-int sh_button_detach_cb(struct sh_button *button,
-                        enum sh_button_event event_id);
+int sh_button_detach_cb(struct sh_button *button, enum sh_button_event event_id);
+
+/* button handler */
 int sh_button_handler(sh_button_ctrl_t *button_ctrl);
+
+/* button api */
 uint8_t sh_button_get_level(struct sh_button *button);
-enum sh_button_press_state 
-sh_button_get_current_press_state(struct sh_button *button);
+enum sh_button_press_state sh_button_get_current_press_state(struct sh_button *button);
 
 #ifdef __cplusplus
 }   /* extern "C" */ 
