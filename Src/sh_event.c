@@ -434,7 +434,7 @@ int sh_event_publish(sh_event_map_t *map, uint8_t event_id)
     return sh_event_publish_with_param(map, event_id, NULL, 0);
 }
 
-int sh_event_execute(sh_event_server_t *server)
+int sh_event_handler(sh_event_server_t *server)
 {
     SH_ASSERT(server);
     

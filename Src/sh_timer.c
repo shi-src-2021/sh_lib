@@ -127,7 +127,7 @@ bool sh_timer_is_time_out(uint32_t now, uint32_t set_tick)
     return ((int32_t)(now - set_tick) >= 0);
 }
 
-void sh_timer_loop(sh_list_t *head)
+void sh_timer_handler(sh_list_t *head)
 {
     if (head == NULL) {
         return;

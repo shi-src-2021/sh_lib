@@ -46,7 +46,7 @@ void sh_timer_set_mode(sh_timer_t *timer, enum sh_timer_mode mode);
 int sh_timer_start(sh_timer_t *timer, sh_list_t *head, uint32_t now, uint32_t interval_tick);
 void sh_timer_restart(sh_timer_t *timer, sh_list_t *head, uint32_t now);
 void sh_timer_stop(sh_timer_t *timer);
-void sh_timer_loop(sh_list_t *head);
+void sh_timer_handler(sh_list_t *head);
 bool sh_timer_is_time_out(uint32_t now, uint32_t set_tick);
 
 #if SH_TIMER_MALLOC_ENABLE

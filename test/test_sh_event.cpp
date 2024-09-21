@@ -116,7 +116,7 @@ TEST_F(TEST_SH_EVENT, sync_sub_mode_test) {
     EXPECT_EQ(1, sh_event_server_get_msg_count(server1));
     EXPECT_EQ(1, sh_event_server_get_msg_count(server2));
 
-    ASSERT_EQ(0, sh_event_execute(server1));
+    ASSERT_EQ(0, sh_event_handler(server1));
     EXPECT_EQ(1, init_cnt);
     EXPECT_EQ(1, enter_cnt);
     EXPECT_EQ(0, exit_cnt);
@@ -124,7 +124,7 @@ TEST_F(TEST_SH_EVENT, sync_sub_mode_test) {
     EXPECT_EQ(0, sh_event_server_get_msg_count(server1));
     EXPECT_EQ(1, sh_event_server_get_msg_count(server2));
 
-    ASSERT_EQ(0, sh_event_execute(server2));
+    ASSERT_EQ(0, sh_event_handler(server2));
     EXPECT_EQ(2, init_cnt);
     EXPECT_EQ(1, enter_cnt);
     EXPECT_EQ(0, exit_cnt);
@@ -152,7 +152,7 @@ TEST_F(TEST_SH_EVENT, async_sub_mode_test) {
 
     EXPECT_EQ(2, sh_event_server_get_msg_count(server1));
 
-    ASSERT_EQ(0, sh_event_execute(server1));
+    ASSERT_EQ(0, sh_event_handler(server1));
     EXPECT_EQ(1, init_cnt);
     EXPECT_EQ(1, enter_cnt);
     EXPECT_EQ(0, exit_cnt);
@@ -181,7 +181,7 @@ TEST_F(TEST_SH_EVENT, repeat_sub_and_msg_str_test) {
 
     EXPECT_EQ(3, sh_event_server_get_msg_count(server1));
 
-    ASSERT_EQ(0, sh_event_execute(server1));
+    ASSERT_EQ(0, sh_event_handler(server1));
     EXPECT_EQ(2, init_cnt);
     EXPECT_EQ(0, enter_cnt);
     EXPECT_EQ(1, exit_cnt);
@@ -199,7 +199,7 @@ TEST_F(TEST_SH_EVENT, repeat_sub_and_msg_str_test) {
     
     EXPECT_EQ(1, sh_event_server_get_msg_count(server1));
 
-    ASSERT_EQ(0, sh_event_execute(server1));
+    ASSERT_EQ(0, sh_event_handler(server1));
     EXPECT_EQ(2, init_cnt);
     EXPECT_EQ(1, enter_cnt);
     EXPECT_EQ(1, exit_cnt);
@@ -211,7 +211,7 @@ TEST_F(TEST_SH_EVENT, repeat_sub_and_msg_str_test) {
     
     EXPECT_EQ(1, sh_event_server_get_msg_count(server1));
 
-    ASSERT_EQ(0, sh_event_execute(server1));
+    ASSERT_EQ(0, sh_event_handler(server1));
     EXPECT_EQ(2, init_cnt);
     EXPECT_EQ(1, enter_cnt);
     EXPECT_EQ(2, exit_cnt);
@@ -243,7 +243,7 @@ TEST_F(TEST_SH_EVENT, server_clear_msg_test) {
     ASSERT_EQ(0, sh_event_publish(map, SH_EVENT_ENTER));
     ASSERT_EQ(0, sh_event_publish(map, SH_EVENT_EXIT));
 
-    ASSERT_EQ(0, sh_event_execute(server1));
+    ASSERT_EQ(0, sh_event_handler(server1));
     EXPECT_EQ(0, init_cnt);
     EXPECT_EQ(2, enter_cnt);
     EXPECT_EQ(2, exit_cnt);
@@ -254,9 +254,11 @@ TEST_F(TEST_SH_EVENT, server_clear_msg_test) {
 }
 
 TEST_F(TEST_SH_EVENT, server_name_max_len_test) {
-    sh_event_server_t *server = sh_event_server_create(map, "123456789012345678901234567890");
+    char name[] = "123456789012345678901234567890";
+    sh_event_server_t *server = sh_event_server_create(map, name);
     EXPECT_EQ(0, server->obj.name[SH_EVENT_NAME_MAX - 1]);
-    EXPECT_STREQ("123456789012345", server->obj.name);
+    name[SH_EVENT_NAME_MAX - 1] = '\0';
+    EXPECT_STREQ(name, server->obj.name);
     sh_event_server_destroy(server);
 }
 

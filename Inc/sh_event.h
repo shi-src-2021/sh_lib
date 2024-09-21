@@ -72,7 +72,7 @@ int sh_event_subscribe(sh_event_server_t *server, uint8_t event_id, event_cb cb)
 int sh_event_unsubscribe(sh_event_server_t *server, uint8_t event_id);
 int sh_event_publish(sh_event_map_t *map, uint8_t event_id);
 int sh_event_publish_with_param(sh_event_map_t *map, uint8_t event_id, void *data, size_t size);
-int sh_event_execute(sh_event_server_t *server);
+int sh_event_handler(sh_event_server_t *server);
 int sh_event_server_clear_msg(sh_event_server_t *server);
 int sh_event_server_get_msg_count(sh_event_server_t *server);
 char* sh_event_get_event_id_name(struct sh_event_type_table *table, size_t size, uint8_t event_id);

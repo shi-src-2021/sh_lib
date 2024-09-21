@@ -81,7 +81,7 @@ TEST_F(TEST_SH_TIMER, sh_timer_init_test) {
         if (i++ > 1099) {
             break;
         }
-        sh_timer_loop(&head);
+        sh_timer_handler(&head);
     }
     EXPECT_EQ(timer_cnt[0], 10);
     EXPECT_EQ(timer_cnt[1], 5);
