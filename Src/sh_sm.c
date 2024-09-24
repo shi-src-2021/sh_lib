@@ -11,6 +11,7 @@
 #endif
 
 struct sh_sm_timer_node {
+    sh_list_t list;
     sh_timer_t *timer;
     uint32_t current_cnt;
     uint32_t destroy_cnt;
@@ -29,6 +30,7 @@ struct sh_sm_state {
     sh_event_server_t *server;
     sh_list_t private_timer_head;
     uint32_t timer_bitmap;
+    sh_list_t timer_node_head;
 };
 
 typedef struct sh_sm_state sh_sm_state_t;
@@ -40,6 +42,7 @@ struct sh_sm {
     sh_event_map_t *map;
     sh_timer_get_tick_fn timer_get_tick;
     uint32_t timer_bitmap;
+    sh_list_t timer_node_head;
 };
 
 static int sh_sm_init(sh_sm_t *sm, sh_event_type_table_t *table,
@@ -56,9 +59,11 @@ static int sh_sm_init(sh_sm_t *sm, sh_event_type_table_t *table,
 
     sh_list_init(&sm->global_timer_head);
     sh_list_init(&sm->state_list);
+    sh_list_init(&sm->timer_node_head);
     sm->current_state = NULL;
     sm->map = map;
     sm->timer_get_tick = fn;
+    sm->timer_bitmap = 0;
 
     sh_timer_sys_init(fn);
     
@@ -133,17 +138,19 @@ void sh_sm_destroy(sh_sm_t *sm)
 }
 
 
-static int sh_sm_state_init(sh_sm_state_t *sm_state, 
+static int sh_sm_state_init(sh_sm_state_t *state, 
                             sh_event_server_t *server, 
                             uint8_t state_id)
 {
-    SH_ASSERT(sm_state);
+    SH_ASSERT(state);
 
-    sh_list_init(&sm_state->list);
-    sh_list_init(&sm_state->private_timer_head);
-    sm_state->parent = NULL;
-    sm_state->server = server;
-    sm_state->state_id = state_id;
+    sh_list_init(&state->list);
+    sh_list_init(&state->private_timer_head);
+    sh_list_init(&state->timer_node_head);
+    state->parent = NULL;
+    state->server = server;
+    state->state_id = state_id;
+    state->timer_bitmap = 0;
 
     return 0;
 }
@@ -172,7 +179,7 @@ int sh_sm_state_create(sh_sm_t *sm, uint8_t state_id)
     if (state == NULL) {
         goto free_server;
     }
-    
+
     sh_sm_state_init(state, server, state_id);
 
     sh_sm_add_state(sm, state);
@@ -340,6 +347,8 @@ static void sh_sm_timer_node_destroy(sh_sm_timer_node_t *timer_node)
         return;
     }
 
+    sh_list_remove(&timer_node->list);
+
     if (timer_node->timer) {
         sh_timer_destroy(timer_node->timer);
     }
@@ -350,7 +359,7 @@ static void sh_sm_timer_node_destroy(sh_sm_timer_node_t *timer_node)
 static int sh_sm_timer_get_uniqe_id(uint32_t bitmap)
 {
     for (int i = 0; i < (sizeof(bitmap) * 8); i++) {
-        if (bitmap & (1ul << i)) {
+        if (!(bitmap & (1ul << i))) {
             return i;
         }
     }
@@ -359,7 +368,8 @@ static int sh_sm_timer_get_uniqe_id(uint32_t bitmap)
 }
 
 static int _sh_sm_start_timer(sh_sm_t *sm, 
-                              sh_list_t *head,
+                              sh_list_t *timer_head,
+                              sh_list_t *timer_node_head,
                               enum sh_timer_mode mode, 
                               uint32_t interval_tick, 
                               uint8_t event_id,
@@ -376,22 +386,26 @@ static int _sh_sm_start_timer(sh_sm_t *sm,
     timer_node->event_id = event_id;
     timer_node->destroy_cnt = destroy_cnt;
     timer_node->timer_id = timer_id;
+    sh_list_init(&timer_node->list);
 
     sh_timer_set_param(timer_node->timer, timer_node);
 
-    if (sh_timer_start(timer_node->timer, head, 
+    if (sh_timer_start(timer_node->timer, timer_head, 
                        sm->timer_get_tick(), interval_tick))
     {
         sh_sm_timer_node_destroy(timer_node);
         return -1;
     }
 
+    sh_list_insert_before(&timer_node->list, timer_node_head);
+
     return 0;
 }
 
 static int sh_sm_start_timer_and_get_id(sh_sm_t *sm, 
                                         uint32_t *bitmap,
-                                        sh_list_t *head,
+                                        sh_list_t *timer_head,
+                                        sh_list_t *timer_node_head,
                                         enum sh_timer_mode mode,
                                         uint32_t interval_tick,
                                         uint8_t event_id)
@@ -403,7 +417,7 @@ static int sh_sm_start_timer_and_get_id(sh_sm_t *sm,
         return -1;
     }
 
-    if (_sh_sm_start_timer(sm, head, mode, interval_tick, event_id, 
+    if (_sh_sm_start_timer(sm, timer_head, timer_node_head, mode, interval_tick, event_id, 
                            (mode == SH_TIMER_MODE_SINGLE) ? 1 : UINT32_MAX, timer_id))
     {
         return -1;
@@ -417,13 +431,15 @@ static int sh_sm_start_timer_and_get_id(sh_sm_t *sm,
 int sh_sm_start_global_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id)
 {
     return sh_sm_start_timer_and_get_id(sm, &sm->timer_bitmap, &sm->global_timer_head,
-                                        SH_TIMER_MODE_SINGLE, interval_tick, event_id);
+                                        &sm->timer_node_head, SH_TIMER_MODE_SINGLE,
+                                        interval_tick, event_id);
 }
 
 int sh_sm_start_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id)
 {
     return sh_sm_start_timer_and_get_id(sm, &sm->current_state->timer_bitmap,
                                         &sm->current_state->private_timer_head,
+                                        &sm->current_state->timer_node_head,
                                         SH_TIMER_MODE_SINGLE, interval_tick, event_id);
 }
 
@@ -431,27 +447,26 @@ int sh_sm_start_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id)
 int sh_sm_start_global_timer_loop(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id)
 {
     return sh_sm_start_timer_and_get_id(sm, &sm->timer_bitmap, &sm->global_timer_head,
-                                        SH_TIMER_MODE_LOOP, interval_tick, event_id);
+                                        &sm->timer_node_head, SH_TIMER_MODE_LOOP,
+                                        interval_tick, event_id);
 }
 
 int sh_sm_start_timer_loop(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id)
 {
     return sh_sm_start_timer_and_get_id(sm, &sm->current_state->timer_bitmap,
                                         &sm->current_state->private_timer_head,
+                                        &sm->current_state->timer_node_head,
                                         SH_TIMER_MODE_LOOP, interval_tick, event_id);
 }
 #endif
 
-static int sh_sm_timer_destroy(sh_list_t *timer_head, uint8_t timer_id, uint32_t *bitmap)
+static int sh_sm_timer_destroy(sh_list_t *timer_node_head, uint8_t timer_id)
 {
-    SH_ASSERT(timer_head);
-    SH_ASSERT(bitmap);
+    SH_ASSERT(timer_node_head);
 
-    sh_list_for_each(node, timer_head) {
-        sh_timer_t *timer = sh_container_of(node, sh_timer_t, list);
-        sh_sm_timer_node_t *timer_node = sh_container_of(timer, sh_sm_timer_node_t, timer);
+    sh_list_for_each(node, timer_node_head) {
+        sh_sm_timer_node_t *timer_node = sh_container_of(node, sh_sm_timer_node_t, list);
         if (timer_node->timer_id == timer_id) {
-            *bitmap &= ~(1ul << timer_id);
             sh_sm_timer_node_destroy(timer_node);
             return 0;
         }
@@ -463,17 +478,17 @@ static int sh_sm_timer_destroy(sh_list_t *timer_head, uint8_t timer_id, uint32_t
 static int sh_sm_get_bitmap_and_timer_head(sh_sm_t *sm, 
                                            enum sh_sm_timer_type type, 
                                            uint32_t **bitmap, 
-                                           sh_list_t **timer_head)
+                                           sh_list_t **timer_node_head)
 {
     if (type == SH_SM_PRIVATE_TIMER) {
         if (!sm->current_state) {
             return -1;
         }
         *bitmap = &sm->current_state->timer_bitmap;
-        *timer_head = &sm->current_state->private_timer_head;
+        *timer_node_head = &sm->current_state->timer_node_head;
     } else if (type == SH_SM_GLOBAL_TIMER) {
         *bitmap = &sm->timer_bitmap;
-        *timer_head = &sm->global_timer_head;
+        *timer_node_head = &sm->timer_node_head;
     } else {
         return -1;
     }
@@ -486,14 +501,14 @@ int sh_sm_remove_timer(sh_sm_t *sm, enum sh_sm_timer_type type, uint8_t timer_id
     SH_ASSERT(sm);
 
     uint32_t *bitmap_ptr = NULL;
-    sh_list_t *timer_head = NULL;
+    sh_list_t *timer_node_head = NULL;
 
     /* timer id is too large */
     if (timer_id >= (uint8_t)(sizeof(sm->timer_bitmap) * 8)) {
         return -1;
     }
 
-    if (sh_sm_get_bitmap_and_timer_head(sm, type, &bitmap_ptr, &timer_head)) {
+    if (sh_sm_get_bitmap_and_timer_head(sm, type, &bitmap_ptr, &timer_node_head)) {
         return -1;
     }
 
@@ -502,8 +517,10 @@ int sh_sm_remove_timer(sh_sm_t *sm, enum sh_sm_timer_type type, uint8_t timer_id
         return -1;
     }
 
-    sh_sm_timer_destroy(timer_head, timer_id, bitmap_ptr);
-
+    if (sh_sm_timer_destroy(timer_node_head, timer_id) == 0) {
+        *bitmap_ptr &= (~(1ul << timer_id));
+    }
+    
     return 0;
 }
 
