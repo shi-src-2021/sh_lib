@@ -5,17 +5,10 @@
 #include <stdint.h>
 
 #include "sh_list.h"
+#include "sh_mem.h"
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#define SH_TIMER_MALLOC_ENABLE  1
-
-#if SH_TIMER_MALLOC_ENABLE
-#include "sh_mem.h"
-#define SH_MALLOC   sh_malloc
-#define SH_FREE     sh_free
 #endif
 
 typedef uint32_t (*sh_timer_get_tick_fn)(void);
@@ -48,11 +41,8 @@ void sh_timer_restart(sh_timer_t *timer, sh_list_t *head, uint32_t now);
 void sh_timer_stop(sh_timer_t *timer);
 void sh_timer_handler(sh_list_t *head);
 bool sh_timer_is_time_out(uint32_t now, uint32_t set_tick);
-
-#if SH_TIMER_MALLOC_ENABLE
 sh_timer_t* sh_timer_create(enum sh_timer_mode mode, overtick_cb_fn cb);
 void sh_timer_destroy(sh_timer_t *timer);
-#endif
 
 #ifdef __cplusplus
 }   /* extern "C" */ 

@@ -98,7 +98,6 @@ TEST_F(TEST_SH_TIMER, tick_overflow_test) {
     EXPECT_TRUE(sh_timer_is_time_out(-1, -1));
 }
 
-#if SH_TIMER_MALLOC_ENABLE
 TEST_F(TEST_SH_TIMER, timer_malloc_test) {
     int mem_size = sh_get_free_size();
     sh_timer_t *timer = sh_timer_create(SH_TIMER_MODE_SINGLE, timer_overtick_cb);
@@ -106,5 +105,4 @@ TEST_F(TEST_SH_TIMER, timer_malloc_test) {
     sh_timer_destroy(timer);
     EXPECT_EQ(mem_size, sh_get_free_size());
 }
-#endif
 

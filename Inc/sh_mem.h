@@ -9,6 +9,9 @@ extern "C" {
 
 #define MEM_POOL_SIZE   (10 * 1024)
 
+#define SH_MALLOC       sh_malloc
+#define SH_FREE         sh_free
+
 void* sh_malloc(size_t size);
 void* sh_realloc(void* ptr, size_t size);
 void sh_free(void* ptr);

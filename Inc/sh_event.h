@@ -13,9 +13,6 @@ extern "C" {
 
 #define SH_EVENT_NAME_MAX   24
 
-#define SH_MALLOC           sh_malloc
-#define SH_FREE             sh_free
-
 enum sh_event_sub_mode {
     SH_EVENT_SUB_ASYNC = 0,
     SH_EVENT_SUB_SYNC,

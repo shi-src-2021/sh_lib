@@ -37,7 +37,6 @@ void sh_timer_init(sh_timer_t *timer, enum sh_timer_mode mode, overtick_cb_fn cb
     sh_list_init(&timer->list);
 }
 
-#if SH_TIMER_MALLOC_ENABLE
 sh_timer_t* sh_timer_create(enum sh_timer_mode mode, overtick_cb_fn cb)
 {
     sh_timer_t *timer = SH_MALLOC(sizeof(sh_timer_t));
@@ -59,7 +58,6 @@ void sh_timer_destroy(sh_timer_t *timer)
     sh_list_remove(&timer->list);
     SH_FREE(timer);
 }
-#endif
 
 void sh_timer_set_param(sh_timer_t *timer, void *param)
 {
