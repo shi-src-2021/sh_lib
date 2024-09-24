@@ -187,7 +187,7 @@ int sh_sm_state_create(sh_sm_t *sm, uint8_t state_id)
     return 0;
 
 free_server:
-    SH_FREE(server);
+    sh_event_server_destroy(server);
 
     return -1;
 }
