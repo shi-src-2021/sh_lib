@@ -42,7 +42,7 @@ static sh_event_t *sh_event_get_event_by_id(sh_event_map_t *map, uint8_t id);
 static int sh_event_get_index_by_id(sh_event_map_t *map, uint8_t id, uint8_t *index);
 static int _sh_event_execute(sh_event_server_t *server, bool is_cb_called);
 
-sh_event_map_t* sh_event_map_create(struct sh_event_type_table *table, size_t size)
+sh_event_map_t* sh_event_map_create(sh_event_type_table_t *table, size_t size)
 {
     SH_ASSERT(table);
     
@@ -183,6 +183,7 @@ void sh_event_server_destroy(sh_event_server_t *server)
 
     sh_list_for_each(node, &server->map->obj.list) {
         sh_event_t *event = (sh_event_t*)sh_container_of(node, sh_event_obj_t, list);
+        
         sh_event_list_node_t *server_node = 
             sh_event_server_list_find_node(&event->server, server);
         if (server_node == NULL) {
@@ -192,6 +193,8 @@ void sh_event_server_destroy(sh_event_server_t *server)
         sh_event_list_node_destroy(server_node);
         server_node = NULL;
     }
+
+    sh_event_unsubscribe_all(server);
 
     SH_FREE(server->sub_mode);
     SH_FREE(server->cb);
@@ -292,6 +295,23 @@ int sh_event_unsubscribe(sh_event_server_t *server, uint8_t event_id)
     }
     server->cb[index] = NULL;
     server->sub_mode[index] = SH_EVENT_SUB_ASYNC;
+
+    return 0;
+}
+
+int sh_event_unsubscribe_all(sh_event_server_t *server)
+{
+    SH_ASSERT(server);
+
+    if (server->map == NULL) {
+        return -1;
+    }
+
+    sh_list_for_each(node, &server->map->obj.list) {
+        sh_event_obj_t *obj = sh_container_of(node, sh_event_obj_t, list);
+        sh_event_t *event = sh_container_of(obj, sh_event_t, obj);
+        sh_event_unsubscribe(server, event->id);
+    }
 
     return 0;
 }
@@ -520,7 +540,12 @@ static int sh_event_obj_init(sh_event_obj_t *obj, const char *name)
 {
     SH_ASSERT(obj);
     
-    strncpy(obj->name, name, SH_EVENT_NAME_MAX - 1);
+    if (name != NULL) {
+        strncpy(obj->name, name, SH_EVENT_NAME_MAX - 1);
+    } else {
+        memset(obj->name, 0, sizeof(obj->name));
+    }
+    
     sh_list_init(&obj->list);
 
     return 0;
@@ -591,7 +616,7 @@ int sh_event_server_get_msg_count(sh_event_server_t *server)
     return cnt;
 }
 
-char* sh_event_get_event_id_name(struct sh_event_type_table *table, 
+char* sh_event_get_event_id_name(sh_event_type_table_t *table, 
                                  size_t size, 
                                  uint8_t event_id)
 {

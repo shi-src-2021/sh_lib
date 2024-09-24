@@ -17,7 +17,7 @@ enum sh_event_type {
     SH_EVENT_EXIT,
 };
 
-static struct sh_event_type_table event_table[] = {
+static sh_event_type_table_t event_table[] = {
     {SH_EVENT_INIT,     "init"},
     {SH_EVENT_ENTER,    "enter"},
     {SH_EVENT_EXIT,     "exit"},

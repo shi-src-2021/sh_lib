@@ -40,6 +40,8 @@ struct sh_event_type_table {
     char            name[SH_EVENT_NAME_MAX];
 };
 
+typedef struct sh_event_type_table sh_event_type_table_t;
+
 struct sh_event_msg {
     uint8_t         id;
     void           *data;
@@ -61,7 +63,7 @@ struct sh_event_server {
 
 typedef struct sh_event_server sh_event_server_t;
 
-sh_event_map_t* sh_event_map_create(struct sh_event_type_table *table, size_t size);
+sh_event_map_t* sh_event_map_create(sh_event_type_table_t *table, size_t size);
 void sh_event_map_destroy(sh_event_map_t *map);
 sh_event_server_t* sh_event_server_create(sh_event_map_t *map, const char *name);
 void sh_event_server_destroy(sh_event_server_t *server);
@@ -70,12 +72,13 @@ int sh_event_server_stop(sh_event_server_t *server);
 int sh_event_subscribe_sync(sh_event_server_t *server, uint8_t event_id, event_cb cb);
 int sh_event_subscribe(sh_event_server_t *server, uint8_t event_id, event_cb cb);
 int sh_event_unsubscribe(sh_event_server_t *server, uint8_t event_id);
+int sh_event_unsubscribe_all(sh_event_server_t *server);
 int sh_event_publish(sh_event_map_t *map, uint8_t event_id);
 int sh_event_publish_with_param(sh_event_map_t *map, uint8_t event_id, void *data, size_t size);
 int sh_event_handler(sh_event_server_t *server);
 int sh_event_server_clear_msg(sh_event_server_t *server);
 int sh_event_server_get_msg_count(sh_event_server_t *server);
-char* sh_event_get_event_id_name(struct sh_event_type_table *table, size_t size, uint8_t event_id);
+char* sh_event_get_event_id_name(sh_event_type_table_t *table, size_t size, uint8_t event_id);
 
 #ifdef __cplusplus
 }   /* extern "C" */ 

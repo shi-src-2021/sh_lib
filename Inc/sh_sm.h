@@ -10,27 +10,28 @@ extern "C" {
 
 #define SH_SM_NAME_MAX   16
 
-struct sh_sm_state {
-    sh_list_t list;
-    uint8_t state_id;
-    struct sh_sm_state *parent;
-    sh_event_server_t *server;
-    sh_list_t private_timer_head;
-    uint32_t timer_bitmap;
-};
-
-typedef struct sh_sm_state sh_sm_state_t;
-
-struct sh_sm {
-    sh_list_t state_list;
-    sh_list_t global_timer_head;
-    sh_sm_state_t *current_state;
-    sh_event_map_t *map;
-    sh_timer_get_tick_fn timer_get_tick;
-    uint32_t timer_bitmap;
+enum sh_sm_timer_type {
+    SH_SM_PRIVATE_TIMER = 0,
+    SH_SM_GLOBAL_TIMER,
 };
 
 typedef struct sh_sm sh_sm_t;
+
+sh_sm_t* sh_sm_create(sh_event_type_table_t *table, size_t size, sh_timer_get_tick_fn fn);
+void sh_sm_destroy(sh_sm_t *sm);
+int sh_sm_state_create(sh_sm_t *sm, uint8_t state_id);
+int sh_sm_state_create_with_event(sh_sm_t *sm, uint8_t state_id, uint8_t *event_buf, uint8_t buf_size, event_cb cb);
+int sh_sm_state_destroy(sh_sm_t *sm, uint8_t state_id);
+int sh_sm_state_subscribe_event(sh_sm_t *sm, uint8_t state_id, uint8_t event_id, event_cb cb);
+int sh_sm_state_unsubscribe_event(sh_sm_t *sm, uint8_t state_id, uint8_t event_id);
+int sh_sm_trans_to(sh_sm_t *sm, uint8_t state_id);
+int sh_sm_handler(sh_sm_t *sm);
+int sh_sm_publish_event(sh_sm_t *sm, uint8_t event_id);
+int sh_sm_start_global_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id);
+int sh_sm_start_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id);
+int sh_sm_remove_timer(sh_sm_t *sm, enum sh_sm_timer_type type, uint8_t timer_id);
+int sh_sm_remove_state_all_timer(sh_sm_t *sm, uint8_t state_id);
+void sh_sm_remove_all_global_timer(sh_sm_t *sm);
 
 #ifdef __cplusplus
 }   /* extern "C" */ 
