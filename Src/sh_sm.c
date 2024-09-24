@@ -310,6 +310,21 @@ int sh_sm_publish_event(sh_sm_t *sm, uint8_t event_id)
     return sh_event_publish(sm->map, event_id);
 }
 
+static void sh_sm_timer_node_destroy(sh_sm_timer_node_t *timer_node)
+{
+    if (timer_node == NULL) {
+        return;
+    }
+
+    sh_list_remove(&timer_node->list);
+
+    if (timer_node->timer) {
+        sh_timer_destroy(timer_node->timer);
+    }
+
+    SH_FREE(timer_node);
+}
+
 static void sh_sm_timer_overtick_cb(void *param)
 {
     SH_ASSERT(param);
@@ -317,6 +332,15 @@ static void sh_sm_timer_overtick_cb(void *param)
     sh_sm_timer_node_t *timer_node = (sh_sm_timer_node_t*)param;
 
     sh_sm_publish_event(timer_node->sm, timer_node->event_id);
+
+    if (timer_node->destroy_cnt == UINT32_MAX) {
+        return;
+    }
+
+    timer_node->current_cnt++;
+    if (timer_node->current_cnt >= timer_node->destroy_cnt) {
+        sh_sm_timer_node_destroy(timer_node);
+    }
 }
 
 static sh_sm_timer_node_t* sh_sm_timer_node_create(enum sh_timer_mode mode)
@@ -339,21 +363,6 @@ free_timer_node:
     SH_FREE(timer_node);
 
     return NULL;
-}
-
-static void sh_sm_timer_node_destroy(sh_sm_timer_node_t *timer_node)
-{
-    if (timer_node == NULL) {
-        return;
-    }
-
-    sh_list_remove(&timer_node->list);
-
-    if (timer_node->timer) {
-        sh_timer_destroy(timer_node->timer);
-    }
-
-    SH_FREE(timer_node);
 }
 
 static int sh_sm_timer_get_uniqe_id(uint32_t bitmap)
