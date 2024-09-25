@@ -99,11 +99,13 @@ static void _sh_sm_remove_state_all_timer(sh_sm_t *sm, sh_sm_state_t *state)
     }
 }
 
-static int sh_sm_delete_state(sh_sm_state_t *state)
+static int sh_sm_remove_state_node(sh_sm_state_t *state)
 {
     SH_ASSERT(state);
 
     sh_list_remove(&state->list);
+
+    return 0;
 }
 
 static void _sh_sm_state_destroy(sh_sm_t *sm, sh_sm_state_t *state)
@@ -117,7 +119,7 @@ static void _sh_sm_state_destroy(sh_sm_t *sm, sh_sm_state_t *state)
 
     _sh_sm_remove_state_all_timer(sm, state);
 
-    sh_sm_delete_state(state);
+    sh_sm_remove_state_node(state);
 
     SH_FREE(state);
 }
