@@ -235,9 +235,7 @@ int sh_button_handler(sh_button_ctrl_t *button_ctrl)
     }
     
     sh_list_for_each(node, &button_ctrl->head) {
-        struct sh_button *button = 
-            sh_container_of(node, struct sh_button, list);
-        
+        struct sh_button *button = sh_container_of(node, struct sh_button, list);
         sh_button_debounce(button, button_ctrl->debounce_ticks);
         sh_button_state_machine_process(button, button_ctrl);
     }

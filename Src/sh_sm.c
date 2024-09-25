@@ -26,7 +26,6 @@ typedef struct sh_sm_timer_node sh_sm_timer_node_t;
 struct sh_sm_state {
     sh_list_t list;
     uint8_t state_id;
-    struct sh_sm_state *parent;
     sh_event_server_t *server;
     sh_list_t private_timer_head;
     uint32_t timer_bitmap;
@@ -147,7 +146,6 @@ static int sh_sm_state_init(sh_sm_state_t *state,
     sh_list_init(&state->list);
     sh_list_init(&state->private_timer_head);
     sh_list_init(&state->timer_node_head);
-    state->parent = NULL;
     state->server = server;
     state->state_id = state_id;
     state->timer_bitmap = 0;
