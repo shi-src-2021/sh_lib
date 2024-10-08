@@ -217,22 +217,6 @@ int sh_sm_state_destroy(sh_sm_t *sm, uint8_t state_id)
     return 0;
 }
 
-int sh_sm_state_create_with_event(sh_sm_t *sm, uint8_t state_id, uint8_t *event_buf,
-                                  uint8_t buf_size, event_cb cb)
-{
-    if (sh_sm_state_create(sm, state_id)) {
-        return -1;
-    }
-
-    for (int i = 0; i < buf_size; i++) {
-        if (sh_sm_state_subscribe_event(sm, state_id, event_buf[i], cb)) {
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
 int sh_sm_state_subscribe_event(sh_sm_t *sm, uint8_t state_id, uint8_t event_id, event_cb cb)
 {
     SH_ASSERT(sm);
@@ -243,6 +227,26 @@ int sh_sm_state_subscribe_event(sh_sm_t *sm, uint8_t state_id, uint8_t event_id,
     }
 
     return sh_event_subscribe(state->server, event_id, cb);
+}
+
+int sh_sm_state_subscribe_event_group(sh_sm_t *sm, uint8_t state_id, uint8_t *event_buf, 
+                                      uint8_t event_cnt, event_cb cb)
+{
+    SH_ASSERT(sm);
+    int ret = 0;
+
+    sh_sm_state_t *state = sh_sm_get_state(sm, state_id);
+    if (state == NULL) {
+        return -1;
+    }
+
+    for (int i = 0; i < event_cnt; i++) {
+        if (sh_event_subscribe(state->server, event_buf[i], cb)) {
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 int sh_sm_state_unsubscribe_event(sh_sm_t *sm, uint8_t state_id, uint8_t event_id)

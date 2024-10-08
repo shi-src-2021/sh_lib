@@ -24,6 +24,8 @@ extern "C" {
 
 #define ARRAY_SIZE(__array) (sizeof(__array) / sizeof(__array[0]))
 
+#define SH_GROUP(__array) __array, ARRAY_SIZE(__array)
+
 #define sh_offset_of(type, member) ((size_t)(&(((type *)0)->member)))
 #define sh_container_of(ptr, type, member) \
             ((type *)((char *)(ptr) - sh_offset_of(type, member)))

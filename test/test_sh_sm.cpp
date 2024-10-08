@@ -115,14 +115,17 @@ protected:
         memset(event_cnt, 0, sizeof(event_cnt));
 
         _free_size = sh_get_free_size();
+
         sm = sh_sm_create(event_table, ARRAY_SIZE(event_table), get_tick_cnt);
         ASSERT_TRUE(sm);
 
-        uint8_t event_buf[] = {SH_EVENT_ONE, SH_EVENT_TWO, SH_EVENT_THREE};
-        ASSERT_EQ(0, sh_sm_state_create_with_event(sm, SH_SM_STATE_ENTER,   event_buf, ARRAY_SIZE(event_buf), sh_sm_state_enter_cb));
-        ASSERT_EQ(0, sh_sm_state_create_with_event(sm, SH_SM_STATE_EXECUTE, event_buf, ARRAY_SIZE(event_buf), sh_sm_state_execute_cb));
-
+        ASSERT_EQ(0, sh_sm_state_create(sm, SH_SM_STATE_ENTER));
+        ASSERT_EQ(0, sh_sm_state_create(sm, SH_SM_STATE_EXECUTE));
         ASSERT_EQ(0, sh_sm_state_create(sm, SH_SM_STATE_EXIT));
+
+        uint8_t event_buf[] = {SH_EVENT_ONE, SH_EVENT_TWO, SH_EVENT_THREE};
+        ASSERT_EQ(0, sh_sm_state_subscribe_event_group(sm, SH_SM_STATE_ENTER,   SH_GROUP(event_buf), sh_sm_state_enter_cb));
+        ASSERT_EQ(0, sh_sm_state_subscribe_event_group(sm, SH_SM_STATE_EXECUTE, SH_GROUP(event_buf), sh_sm_state_execute_cb));
         ASSERT_EQ(0, sh_sm_state_subscribe_event(sm, SH_SM_STATE_EXIT, SH_EVENT_ONE, sh_sm_state_exit_cb));
 
         ASSERT_EQ(0, sh_sm_trans_to(sm, SH_SM_STATE_ENTER));
