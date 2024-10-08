@@ -14,27 +14,21 @@
     #define SH_FREE     free
 #endif
 
-struct sh_event_list_node {
+typedef struct sh_event_list_node {
     sh_list_t       list;
     void           *data;
-};
+} sh_event_list_node_t;
 
-typedef struct sh_event_list_node sh_event_list_node_t;
-
-struct sh_event {
+typedef struct sh_event {
     sh_event_obj_t  obj;
     uint8_t         id;
     sh_list_t       server;
-};
+} sh_event_t;
 
-typedef struct sh_event sh_event_t;
-
-struct sh_event_msg_ctrl {
+typedef struct sh_event_msg_ctrl {
     sh_event_msg_t  msg;
     size_t          ref;
-};
-
-typedef struct sh_event_msg_ctrl sh_event_msg_ctrl_t;
+} sh_event_msg_ctrl_t;
 
 static int sh_event_obj_init(sh_event_obj_t *obj, const char *name);
 static sh_event_list_node_t* sh_event_list_node_create(void *data);

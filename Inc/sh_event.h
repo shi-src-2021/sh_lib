@@ -18,47 +18,37 @@ enum sh_event_sub_mode {
     SH_EVENT_SUB_SYNC,
 };
 
-struct sh_event_obj {
+typedef struct sh_event_obj {
     sh_list_t       list;
     char            name[SH_EVENT_NAME_MAX];
-};
+} sh_event_obj_t;
 
-typedef struct sh_event_obj sh_event_obj_t;
-
-struct sh_event_map {
+typedef struct sh_event_map {
     sh_event_obj_t  obj;
     uint8_t         cnt;
-};
+} sh_event_map_t;
 
-typedef struct sh_event_map sh_event_map_t;
-
-struct sh_event_type_table {
+typedef struct sh_event_type_table {
     uint8_t         event_id;
     char            name[SH_EVENT_NAME_MAX];
-};
+} sh_event_type_table_t;
 
-typedef struct sh_event_type_table sh_event_type_table_t;
-
-struct sh_event_msg {
+typedef struct sh_event_msg {
     uint8_t         id;
     void           *data;
     size_t          data_size;
-};
-
-typedef struct sh_event_msg sh_event_msg_t;
+} sh_event_msg_t;
 
 typedef void(*event_cb)(const sh_event_msg_t *e);
 
-struct sh_event_server {
+typedef struct sh_event_server {
     sh_event_obj_t  obj;
     sh_list_t       event_queue;
     bool            enable;
     event_cb       *cb;
     uint8_t        *sub_mode;
     sh_event_map_t *map;
-};
-
-typedef struct sh_event_server sh_event_server_t;
+} sh_event_server_t;
 
 sh_event_map_t* sh_event_map_create(sh_event_type_table_t *table, size_t size);
 void sh_event_map_destroy(sh_event_map_t *map);

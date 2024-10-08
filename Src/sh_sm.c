@@ -12,7 +12,7 @@
     #define SH_FREE     free
 #endif
 
-struct sh_sm_timer_node {
+typedef struct sh_sm_timer_node {
     sh_list_t list;
     sh_timer_t *timer;
     uint32_t current_cnt;
@@ -20,21 +20,16 @@ struct sh_sm_timer_node {
     uint8_t event_id;
     sh_sm_t *sm;
     uint8_t timer_id;
-};
+} sh_sm_timer_node_t;
 
-typedef struct sh_sm_timer_node sh_sm_timer_node_t;
-
-
-struct sh_sm_state {
+typedef struct sh_sm_state {
     sh_list_t list;
     uint8_t state_id;
     sh_event_server_t *server;
     sh_list_t private_timer_head;
     uint32_t timer_bitmap;
     sh_list_t timer_node_head;
-};
-
-typedef struct sh_sm_state sh_sm_state_t;
+} sh_sm_state_t;
 
 struct sh_sm {
     sh_list_t state_list;

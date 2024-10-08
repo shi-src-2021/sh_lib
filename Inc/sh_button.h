@@ -54,16 +54,14 @@ struct sh_button {
     get_button_level_fn get_button_level;
 };
 
-struct sh_button_ctrl {
+typedef struct sh_button_ctrl {
     sh_list_t   head;
     uint8_t     invoke_interval_ms;
     uint8_t     debounce_ticks;
     uint16_t    release_timeout_ticks;
     uint16_t    long_press_ticks;
     uint8_t     long_press_repeat_ticks;
-};
-
-typedef struct sh_button_ctrl sh_button_ctrl_t;
+} sh_button_ctrl_t;
 
 int sh_button_ctrl_init(sh_button_ctrl_t *button_ctrl, uint8_t invoke_interval_ms,
                         uint16_t release_timeout_ms, uint16_t long_press_ms,

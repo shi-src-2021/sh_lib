@@ -7,12 +7,10 @@ extern "C" {
 
 #define sh_list_inline  static __inline
 
-struct sh_list_node {
+typedef struct sh_list_node {
     struct sh_list_node *prev;
     struct sh_list_node *next;
-};
-
-typedef struct sh_list_node sh_list_t;
+} sh_list_t;
 
 sh_list_inline void sh_list_init(sh_list_t *list)
 {
