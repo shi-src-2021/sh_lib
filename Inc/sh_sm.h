@@ -2,7 +2,6 @@
 #define __SH_SM_H__
 
 #include "sh_event.h"
-#include "sh_timer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,7 +16,9 @@ enum sh_sm_timer_type {
 
 typedef struct sh_sm sh_sm_t;
 
-sh_sm_t* sh_sm_create(sh_event_type_table_t *table, size_t size, sh_timer_get_tick_fn fn);
+typedef uint32_t (*sh_get_tick_fn)(void);
+
+sh_sm_t* sh_sm_create(sh_event_type_table_t *table, size_t size, sh_get_tick_fn fn);
 void sh_sm_destroy(sh_sm_t *sm);
 int sh_sm_state_create(sh_sm_t *sm, uint8_t state_id);
 int sh_sm_state_create_with_event(sh_sm_t *sm, uint8_t state_id, uint8_t *event_buf, uint8_t buf_size, event_cb cb);

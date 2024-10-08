@@ -11,7 +11,7 @@ using namespace testing;
 
 #define TIMER_AMOUNT    10
 
-sh_timer_t timer[TIMER_AMOUNT];
+sh_timer_t *timer[TIMER_AMOUNT];
 int timer_cnt[TIMER_AMOUNT] = {0};
 
 uint32_t tick = 0;
@@ -24,9 +24,9 @@ static uint32_t windows_get_tick(void)
 static void timer_overtick_cb(void *param)
 {
     if (strcmp("timer4", (char*)param) == 0) {
-        sh_timer_stop(&timer[0]);
-        sh_timer_stop(&timer[1]);
-        sh_timer_stop(&timer[2]);
+        sh_timer_stop(timer[0]);
+        sh_timer_stop(timer[1]);
+        sh_timer_stop(timer[2]);
         timer_cnt[4]++;
     } else if (strcmp("timer0", (char*)param) == 0) {
         timer_cnt[0]++;
@@ -49,10 +49,10 @@ protected:
         sh_timer_sys_init(windows_get_tick);
 
         for (int i = 0; i < ARRAY_SIZE(timer); i++) {
-            sh_timer_init(&timer[i], SH_TIMER_MODE_LOOP, timer_overtick_cb);
+            timer[i] = sh_timer_create(SH_TIMER_MODE_LOOP, timer_overtick_cb);
             buf[i] = (char*)malloc(20);
             sprintf(buf[i], "timer%d", i);
-            sh_timer_set_param(&timer[i], buf[i]);
+            sh_timer_set_param(timer[i], buf[i]);
         }
     }
 
@@ -60,6 +60,7 @@ protected:
     {
         for (int i = 0; i < ARRAY_SIZE(timer); i++) {
             free(buf[i]);
+            sh_timer_destroy(timer[i]);
         }
     }
 
@@ -68,13 +69,13 @@ protected:
 };
 
 TEST_F(TEST_SH_TIMER, sh_timer_init_test) {
-    EXPECT_FALSE(sh_timer_start(&timer[0], &head, 0, 100));
-    EXPECT_FALSE(sh_timer_start(&timer[1], &head, 0, 200));
-    EXPECT_FALSE(sh_timer_start(&timer[2], &head, 0, 500));
-    EXPECT_FALSE(sh_timer_start(&timer[3], &head, 0, 400));
-    EXPECT_FALSE(sh_timer_start(&timer[4], &head, 0, 1001));
-    sh_timer_set_mode(&timer[3], SH_TIMER_MODE_SINGLE);
-    sh_timer_set_mode(&timer[4], SH_TIMER_MODE_SINGLE);
+    EXPECT_FALSE(sh_timer_start(timer[0], &head, 0, 100));
+    EXPECT_FALSE(sh_timer_start(timer[1], &head, 0, 200));
+    EXPECT_FALSE(sh_timer_start(timer[2], &head, 0, 500));
+    EXPECT_FALSE(sh_timer_start(timer[3], &head, 0, 400));
+    EXPECT_FALSE(sh_timer_start(timer[4], &head, 0, 1001));
+    sh_timer_set_mode(timer[3], SH_TIMER_MODE_SINGLE);
+    sh_timer_set_mode(timer[4], SH_TIMER_MODE_SINGLE);
 
     int i = 0;
     while (1) {

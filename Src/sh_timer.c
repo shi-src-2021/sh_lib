@@ -12,6 +12,17 @@
     #define SH_FREE     free
 #endif
 
+struct sh_timer {
+    bool enable;
+    sh_list_t list;
+    enum sh_timer_mode mode;
+    void *param;
+    uint32_t interval_tick;
+    uint32_t overtick;
+    overtick_cb_fn cb;
+    sh_list_t *head;
+};
+
 static sh_timer_get_tick_fn sh_timer_get_tick = NULL;
 
 int sh_timer_sys_init(sh_timer_get_tick_fn fn)

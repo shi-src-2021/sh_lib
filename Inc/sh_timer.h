@@ -19,17 +19,6 @@ enum sh_timer_mode {
     SH_TIMER_MODE_LOOP,
 };
 
-struct sh_timer {
-    bool enable;
-    sh_list_t list;
-    enum sh_timer_mode mode;
-    void *param;
-    uint32_t interval_tick;
-    uint32_t overtick;
-    overtick_cb_fn cb;
-    sh_list_t *head;
-};
-
 typedef struct sh_timer sh_timer_t;
 
 int sh_timer_sys_init(sh_timer_get_tick_fn fn);

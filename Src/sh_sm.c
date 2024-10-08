@@ -1,6 +1,8 @@
 #include "sh_sm.h"
 #include "sh_assert.h"
 #include "sh_lib.h"
+#include "sh_timer.h"
+#include "sh_event.h"
 
 #ifndef SH_MALLOC
     #define SH_MALLOC   malloc
@@ -70,7 +72,7 @@ static int sh_sm_init(sh_sm_t *sm, sh_event_type_table_t *table,
 }
 
 sh_sm_t* sh_sm_create(sh_event_type_table_t *table, size_t size,
-                      sh_timer_get_tick_fn fn)
+                      sh_get_tick_fn fn)
 {
     SH_ASSERT(table);
 
