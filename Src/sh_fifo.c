@@ -75,6 +75,8 @@ uint32_t sh_fifo_in(sh_fifo_t *fifo, void *buf, uint32_t size)
     SH_ASSERT(fifo);
     SH_ASSERT(buf);
 
+    uint32_t esize = fifo->esize;
+
     uint32_t unused_size = sh_fifo_get_unused_size(fifo);
     if (size > unused_size) {
         size = unused_size;
@@ -83,8 +85,8 @@ uint32_t sh_fifo_in(sh_fifo_t *fifo, void *buf, uint32_t size)
     uint32_t _len = fifo->size - (fifo->in % fifo->size);
     _len = MIN(_len, size);
 
-    memcpy((uint8_t *)fifo->data + (fifo->in % fifo->size), buf, _len);
-    memcpy(fifo->data, (uint8_t *)buf + _len, size - _len);
+    memcpy((uint8_t *)fifo->data + fifo->in * esize, buf, _len * esize);
+    memcpy(fifo->data, (uint8_t *)buf + _len * esize, (size - _len) * esize);
 
     fifo->in = (fifo->in + size) % fifo->size;
 
@@ -96,6 +98,8 @@ uint32_t sh_fifo_out(sh_fifo_t *fifo, void *buf, uint32_t size)
     SH_ASSERT(fifo);
     SH_ASSERT(buf);
 
+    uint32_t esize = fifo->esize;
+
     uint32_t used_size = sh_fifo_get_used_size(fifo);
     if (size > used_size) {
         size = used_size;
@@ -104,8 +108,8 @@ uint32_t sh_fifo_out(sh_fifo_t *fifo, void *buf, uint32_t size)
     uint32_t _len = fifo->size - (fifo->out % fifo->size);
     _len = MIN(_len, size);
 
-    memcpy(buf, (uint8_t *)fifo->data + (fifo->out % fifo->size), _len);
-    memcpy((uint8_t *)buf + _len, fifo->data, size - _len);
+    memcpy(buf, (uint8_t *)fifo->data + fifo->out * esize, _len * esize);
+    memcpy((uint8_t *)buf + _len * esize, fifo->data, (size - _len) * esize);
 
     fifo->out = (fifo->out + size) % fifo->size;
 
