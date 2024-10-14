@@ -93,7 +93,7 @@ uint32_t sh_fifo_in(sh_fifo_t *fifo, void *buf, uint32_t size)
     return size;
 }
 
-uint32_t sh_fifo_out(sh_fifo_t *fifo, void *buf, uint32_t size)
+uint32_t sh_fifo_out_peek(sh_fifo_t *fifo, void *buf, uint32_t size)
 {
     SH_ASSERT(fifo);
     SH_ASSERT(buf);
@@ -111,13 +111,17 @@ uint32_t sh_fifo_out(sh_fifo_t *fifo, void *buf, uint32_t size)
     memcpy(buf, (uint8_t *)fifo->data + fifo->out * esize, _len * esize);
     memcpy((uint8_t *)buf + _len * esize, fifo->data, (size - _len) * esize);
 
-    fifo->out = (fifo->out + size) % fifo->size;
-
     return size;
 }
 
+uint32_t sh_fifo_out(sh_fifo_t *fifo, void *buf, uint32_t size)
+{
+    uint32_t len = sh_fifo_out_peek(fifo, buf, size);
 
+    fifo->out = (fifo->out + len) % fifo->size;
 
+    return len;
+}
 
 
 

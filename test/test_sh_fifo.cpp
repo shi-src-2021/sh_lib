@@ -102,6 +102,21 @@ TEST_F(TEST_SH_FIFO, fifo_out_oversize_test)
     }
 }
 
+TEST_F(TEST_SH_FIFO, fifo_out_peek_test)
+{
+    EXPECT_EQ(0, sh_fifo_out_peek(fifo, buf_out, 15));
+    EXPECT_EQ(0, sh_fifo_out_peek(fifo, buf_out, 1));
+
+    EXPECT_EQ(9, sh_fifo_in(fifo, buf_in, 10));
+    FIFO_USED_SIZE_TEST(9);
+
+    EXPECT_EQ(9, sh_fifo_out_peek(fifo, buf_out, 15));
+    FIFO_USED_SIZE_TEST(9);
+    for (int i = 0; i < 9; i++) {
+        EXPECT_EQ(buf_out[i], i + 1);
+    }
+}
+
 TEST_F(TEST_SH_FIFO, fifo_in_out_for_multi_esize_test) {
     sh_fifo_t *_fifo = sh_fifo_create(10, 2);
     EXPECT_EQ(5, sh_fifo_in(_fifo, buf_in, 5));

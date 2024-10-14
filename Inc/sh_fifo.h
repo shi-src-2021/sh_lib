@@ -23,6 +23,7 @@ void sh_fifo_destroy(sh_fifo_t *fifo);
 uint32_t sh_fifo_get_used_size(sh_fifo_t *fifo);
 uint32_t sh_fifo_get_unused_size(sh_fifo_t *fifo);
 uint32_t sh_fifo_in(sh_fifo_t *fifo, void *buf, uint32_t size);
+uint32_t sh_fifo_out_peek(sh_fifo_t *fifo, void *buf, uint32_t size);
 uint32_t sh_fifo_out(sh_fifo_t *fifo, void *buf, uint32_t size);
 
 #ifdef __cplusplus

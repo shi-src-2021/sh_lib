@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define USE_SH_ASSERT           1
+#define USE_SH_ASSERT       1
 
 #if defined(__x86_64__) || defined(__i386__)
 #define SH_PRINTF(...)      printf(__VA_ARGS__)
