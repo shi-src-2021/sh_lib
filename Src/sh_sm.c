@@ -229,8 +229,8 @@ int sh_sm_state_subscribe_event(sh_sm_t *sm, uint8_t state_id, uint8_t event_id,
     return sh_event_subscribe(state->server, event_id, cb);
 }
 
-int sh_sm_state_subscribe_event_group(sh_sm_t *sm, uint8_t state_id, uint8_t *event_buf, 
-                                      uint8_t event_cnt, event_cb cb)
+int sh_sm_state_subscribe_events(sh_sm_t *sm, uint8_t state_id, uint8_t *event_buf, 
+                                 uint8_t event_cnt, event_cb cb)
 {
     SH_ASSERT(sm);
     int ret = 0;

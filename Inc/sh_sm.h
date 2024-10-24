@@ -23,7 +23,7 @@ void sh_sm_destroy(sh_sm_t *sm);
 int sh_sm_state_create(sh_sm_t *sm, uint8_t state_id);
 int sh_sm_state_destroy(sh_sm_t *sm, uint8_t state_id);
 int sh_sm_state_subscribe_event(sh_sm_t *sm, uint8_t state_id, uint8_t event_id, event_cb cb);
-int sh_sm_state_subscribe_event_group(sh_sm_t *sm, uint8_t state_id, uint8_t *event_buf, uint8_t event_cnt, event_cb cb);
+int sh_sm_state_subscribe_events(sh_sm_t *sm, uint8_t state_id, uint8_t *event_buf, uint8_t event_cnt, event_cb cb);
 int sh_sm_state_unsubscribe_event(sh_sm_t *sm, uint8_t state_id, uint8_t event_id);
 int sh_sm_trans_to(sh_sm_t *sm, uint8_t state_id);
 int sh_sm_handler(sh_sm_t *sm);
