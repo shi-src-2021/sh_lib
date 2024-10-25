@@ -5,6 +5,7 @@
 #include "sh_event.h"
 #include "sh_lib.h"
 #include "sh_assert.h"
+#include "sh_isr.h"
 
 #ifndef SH_MALLOC
     #define SH_MALLOC   malloc
@@ -73,12 +74,16 @@ void sh_event_map_destroy(sh_event_map_t *map)
         return;
     }
 
+    int level = sh_isr_disable();
+
     sh_list_for_each_safe(node, &map->obj.list) {
         sh_event_t *event = (sh_event_t*)sh_container_of(node, sh_event_obj_t, list);
         SH_FREE(event);
     }
 
     SH_FREE(map);
+
+    sh_isr_enable(level);
 }
 
 static int sh_event_server_init(sh_event_server_t *server, 
@@ -161,7 +166,7 @@ sh_event_list_node_t *sh_event_server_list_find_node(sh_list_t *server_list,
     return NULL;
 }
 
-void sh_event_list_node_destroy(sh_event_list_node_t *list_node)
+static void sh_event_list_node_destroy(sh_event_list_node_t *list_node)
 {
     sh_list_remove(&list_node->list);
     SH_FREE(list_node);
@@ -172,6 +177,8 @@ void sh_event_server_destroy(sh_event_server_t *server)
     if (server == NULL) {
         return;
     }
+
+    int level = sh_isr_disable();
     
     SH_ASSERT(server->map);
 
@@ -193,6 +200,8 @@ void sh_event_server_destroy(sh_event_server_t *server)
     SH_FREE(server->sub_mode);
     SH_FREE(server->cb);
     SH_FREE(server);
+
+    sh_isr_enable(level);
 }
 
 int sh_event_server_start(sh_event_server_t *server)
@@ -254,30 +263,40 @@ static int _sh_event_subscribe(sh_event_server_t *server,
 int sh_event_subscribe_sync(sh_event_server_t *server, uint8_t event_id, event_cb cb)
 {
     SH_ASSERT(server);
-    
-    return _sh_event_subscribe(server, event_id, cb, SH_EVENT_SUB_SYNC);
+
+    int level = sh_isr_disable();
+    int ret = _sh_event_subscribe(server, event_id, cb, SH_EVENT_SUB_SYNC);
+    sh_isr_enable(level);
+
+    return ret;
 }
 
 int sh_event_subscribe(sh_event_server_t *server, uint8_t event_id, event_cb cb)
 {
     SH_ASSERT(server);
-    
-    return _sh_event_subscribe(server, event_id, cb, SH_EVENT_SUB_ASYNC);
+
+    int level = sh_isr_disable();
+    int ret = _sh_event_subscribe(server, event_id, cb, SH_EVENT_SUB_ASYNC);
+    sh_isr_enable(level);
+
+    return ret;
 }
 
 int sh_event_unsubscribe(sh_event_server_t *server, uint8_t event_id)
 {
     SH_ASSERT(server);
+
+    int level = sh_isr_disable();
     
     sh_event_t *event = sh_event_get_event_by_id(server->map, event_id);
     if (event == NULL) {
-        return -1;
+        goto fail;
     }
 
     sh_event_list_node_t *server_node = 
         sh_event_server_list_find_node(&event->server, server);
     if (server_node == NULL) {
-        return 0;
+        goto ok;
     }
 
     sh_event_list_node_destroy(server_node);
@@ -285,11 +304,17 @@ int sh_event_unsubscribe(sh_event_server_t *server, uint8_t event_id)
 
     uint8_t index = 0;
     if (sh_event_get_index_by_id(server->map, event_id, &index)) {
-        return -1;
+        goto fail;
     }
     server->cb[index] = NULL;
     server->sub_mode[index] = SH_EVENT_SUB_ASYNC;
 
+ok:
+    sh_isr_enable(level);
+    return 0;
+
+fail:
+    sh_isr_enable(level);
     return 0;
 }
 
@@ -301,11 +326,15 @@ int sh_event_unsubscribe_all(sh_event_server_t *server)
         return -1;
     }
 
+    int level = sh_isr_disable();
+
     sh_list_for_each(node, &server->map->obj.list) {
         sh_event_obj_t *obj = sh_container_of(node, sh_event_obj_t, list);
         sh_event_t *event = sh_container_of(obj, sh_event_t, obj);
         sh_event_unsubscribe(server, event->id);
     }
+
+    sh_isr_enable(level);
 
     return 0;
 }
@@ -412,6 +441,8 @@ int sh_event_publish_with_param(sh_event_map_t *map,
         return -1;
     }
 
+    int level = sh_isr_disable();
+
     sh_list_for_each(node, &event->server) {
         sh_event_list_node_t *server_node = 
             sh_container_of(node, sh_event_list_node_t, list);
@@ -424,6 +455,7 @@ int sh_event_publish_with_param(sh_event_map_t *map,
 
         uint8_t index = 0;
         if (sh_event_get_index_by_id(server->map, event_id, &index)) {
+            sh_isr_enable(level);
             return -1;
         }
 
@@ -432,12 +464,14 @@ int sh_event_publish_with_param(sh_event_map_t *map,
         }
 
         if (sh_event_server_save_msg(server, msg_ctrl)) {
+            sh_isr_enable(level);
             return -1;
         }
     }
 
     sh_event_check_if_msg_needs_to_free(msg_ctrl);
 
+    sh_isr_enable(level);
     return 0;
 }
 
@@ -498,8 +532,12 @@ sh_event_get_msg_ctrl_and_free_event_node(sh_event_list_node_t *event_node)
         return NULL;
     }
 
+    int level = sh_isr_disable();
+
     sh_list_remove(&event_node->list);
     SH_FREE(event_node);
+
+    sh_isr_enable(level);
 
     return msg_ctrl;
 }
@@ -512,6 +550,8 @@ static int _sh_event_execute(sh_event_server_t *server, bool is_cb_called)
         return 0;
     }
 
+    int level = sh_isr_disable();
+
     sh_list_for_each_safe(node, &server->event_queue) {
         sh_event_list_node_t *event_node = 
             sh_container_of(node, sh_event_list_node_t, list);
@@ -520,6 +560,7 @@ static int _sh_event_execute(sh_event_server_t *server, bool is_cb_called)
             sh_event_get_msg_ctrl_and_free_event_node(event_node);
 
         if (sh_event_execute_async_cb(server, msg_ctrl, is_cb_called)) {
+            sh_isr_enable(level);
             return -1;
         }
 
@@ -527,6 +568,7 @@ static int _sh_event_execute(sh_event_server_t *server, bool is_cb_called)
         sh_event_check_if_msg_needs_to_free(msg_ctrl);
     }
 
+    sh_isr_enable(level);
     return 0;
 }
 

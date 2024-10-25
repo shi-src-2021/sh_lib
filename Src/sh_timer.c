@@ -3,6 +3,7 @@
 #include "sh_lib.h"
 #include "sh_timer.h"
 #include "sh_assert.h"
+#include "sh_isr.h"
 
 #ifndef SH_MALLOC
     #define SH_MALLOC   malloc
@@ -55,8 +56,12 @@ void sh_timer_destroy(sh_timer_t *timer)
         return;
     }
 
+    int level = sh_isr_disable();
+
     sh_list_remove(&timer->list);
     SH_FREE(timer);
+
+    sh_isr_enable(level);
 }
 
 void sh_timer_set_param(sh_timer_t *timer, void *param)
@@ -82,9 +87,12 @@ int sh_timer_start(sh_timer_t *timer,
     SH_ASSERT(head);
     SH_ASSERT(interval_tick);
 
+    int level = sh_isr_disable();
+
     sh_list_remove(&timer->list);
 
     if (interval_tick > (UINT32_MAX / 2)) {
+        sh_isr_enable(level);
         return -1;
     }
 
@@ -96,10 +104,12 @@ int sh_timer_start(sh_timer_t *timer,
         sh_timer_t *_timer = sh_container_of(node, sh_timer_t, list);
         if (timer->overtick < _timer->overtick) {
             sh_list_insert_before(&timer->list, node);
+            sh_isr_enable(level);
             return 0;
         }
     }
     sh_list_insert_before(&timer->list, head);
+    sh_isr_enable(level);
 
     return 0;
 }
@@ -115,9 +125,10 @@ void sh_timer_stop(sh_timer_t *timer)
 {
     SH_ASSERT(timer);
     
+    int level = sh_isr_disable();
     timer->enable = false;
-
     sh_list_remove(&timer->list);
+    sh_isr_enable(level);
 }
 
 bool sh_timer_is_time_out(uint32_t now, uint32_t set_tick)
@@ -134,11 +145,13 @@ void sh_timer_handler(sh_list_t *head)
     SH_ASSERT(sh_timer_get_tick);
 
     uint32_t current_tick = sh_timer_get_tick();
+    int level = sh_isr_disable();
 
 restart:
     sh_list_for_each(node, head) {
         sh_timer_t *timer = sh_container_of(node, sh_timer_t, list);
         if (!sh_timer_is_time_out(current_tick, timer->overtick)) {
+            sh_isr_enable(level);
             return;
         }
         sh_timer_stop(timer);
@@ -150,6 +163,8 @@ restart:
             goto restart;
         }
     }
+
+    sh_isr_enable(level);
 }
 
 

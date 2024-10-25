@@ -3,6 +3,7 @@
 #include "sh_assert.h"
 #include "sh_fifo.h"
 #include "sh_lib.h"
+#include "sh_isr.h"
 
 #ifndef SH_MALLOC
     #define SH_MALLOC   malloc
@@ -75,6 +76,8 @@ uint32_t sh_fifo_in(sh_fifo_t *fifo, void *buf, uint32_t size)
     SH_ASSERT(fifo);
     SH_ASSERT(buf);
 
+    int level = sh_isr_disable();
+
     uint32_t esize = fifo->esize;
 
     uint32_t unused_size = sh_fifo_get_unused_size(fifo);
@@ -89,6 +92,8 @@ uint32_t sh_fifo_in(sh_fifo_t *fifo, void *buf, uint32_t size)
     memcpy(fifo->data, (uint8_t *)buf + _len * esize, (size - _len) * esize);
 
     fifo->in = (fifo->in + size) % fifo->size;
+
+    sh_isr_enable(level);
 
     return size;
 }
@@ -116,10 +121,13 @@ uint32_t sh_fifo_out_peek(sh_fifo_t *fifo, void *buf, uint32_t size)
 
 uint32_t sh_fifo_out(sh_fifo_t *fifo, void *buf, uint32_t size)
 {
-    uint32_t len = sh_fifo_out_peek(fifo, buf, size);
+    int level = sh_isr_disable();
 
+    uint32_t len = sh_fifo_out_peek(fifo, buf, size);
     fifo->out = (fifo->out + len) % fifo->size;
 
+    sh_isr_enable(level);
+    
     return len;
 }
 
