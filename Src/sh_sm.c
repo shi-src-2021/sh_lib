@@ -234,7 +234,6 @@ int sh_sm_state_subscribe_events(sh_sm_t *sm, uint8_t state_id, uint8_t *event_b
                                  uint8_t event_cnt, event_cb cb)
 {
     SH_ASSERT(sm);
-    int ret = 0;
 
     sh_sm_state_t *state = sh_sm_get_state(sm, state_id);
     if (state == NULL) {
@@ -435,18 +434,23 @@ static int sh_sm_start_timer_and_get_id(sh_sm_t *sm,
 {
     SH_ASSERT(sm);
     
+    int level = sh_isr_disable();
+
     int timer_id = sh_sm_timer_get_uniqe_id(*bitmap);
     if (timer_id < 0) {
+        sh_isr_enable(level);
         return -1;
     }
 
     if (_sh_sm_start_timer(sm, timer_head, timer_node_head, mode, interval_tick, event_id, 
                            (mode == SH_TIMER_MODE_SINGLE) ? 1 : UINT32_MAX, timer_id))
     {
+        sh_isr_enable(level);
         return -1;
     }
 
     *bitmap |= (1ul << timer_id);
+    sh_isr_enable(level);
 
     return timer_id;
 }
@@ -526,24 +530,30 @@ int sh_sm_remove_timer(sh_sm_t *sm, enum sh_sm_timer_type type, uint8_t timer_id
     uint32_t *bitmap_ptr = NULL;
     sh_list_t *timer_node_head = NULL;
 
+    int level = sh_isr_disable();
+
     /* timer id is too large */
     if (timer_id >= (uint8_t)(sizeof(sm->timer_bitmap) * 8)) {
+        sh_isr_enable(level);
         return -1;
     }
 
     if (sh_sm_get_bitmap_and_timer_head(sm, type, &bitmap_ptr, &timer_node_head)) {
+        sh_isr_enable(level);
         return -1;
     }
 
     /* timer id does not exist in the bitmap */
     if ((*bitmap_ptr & (1ul << timer_id)) == 0) {
+        sh_isr_enable(level);
         return -1;
     }
 
     if (sh_sm_timer_destroy(timer_node_head, timer_id) == 0) {
         *bitmap_ptr &= (~(1ul << timer_id));
     }
-    
+    sh_isr_enable(level);
+
     return 0;
 }
 

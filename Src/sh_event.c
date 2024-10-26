@@ -469,7 +469,6 @@ int sh_event_publish_with_param(sh_event_map_t *map,
 
     sh_event_check_if_msg_needs_to_free(msg_ctrl);
 
-ok:
     sh_isr_enable(level);
     return 0;
     
