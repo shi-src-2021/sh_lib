@@ -436,12 +436,12 @@ int sh_event_publish_with_param(sh_event_map_t *map,
         return 0;
     }
 
+    int level = sh_isr_disable();
+
     sh_event_msg_ctrl_t *msg_ctrl = sh_event_msg_create(event_id, data, size);
     if (msg_ctrl == NULL) {
-        return -1;
+        goto fail;
     }
-
-    int level = sh_isr_disable();
 
     sh_list_for_each(node, &event->server) {
         sh_event_list_node_t *server_node = 
@@ -455,8 +455,7 @@ int sh_event_publish_with_param(sh_event_map_t *map,
 
         uint8_t index = 0;
         if (sh_event_get_index_by_id(server->map, event_id, &index)) {
-            sh_isr_enable(level);
-            return -1;
+            goto fail;
         }
 
         if (sh_event_execute_sync_cb(server, index, &msg_ctrl->msg)) {
@@ -464,15 +463,19 @@ int sh_event_publish_with_param(sh_event_map_t *map,
         }
 
         if (sh_event_server_save_msg(server, msg_ctrl)) {
-            sh_isr_enable(level);
-            return -1;
+            goto fail;
         }
     }
 
     sh_event_check_if_msg_needs_to_free(msg_ctrl);
 
+ok:
     sh_isr_enable(level);
     return 0;
+    
+fail:
+    sh_isr_enable(level);
+    return -1;
 }
 
 int sh_event_publish(sh_event_map_t *map, uint8_t event_id)

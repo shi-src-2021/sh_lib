@@ -3,6 +3,7 @@
 #include "sh_lib.h"
 #include "sh_timer.h"
 #include "sh_event.h"
+#include "sh_isr.h"
 
 #ifndef SH_MALLOC
     #define SH_MALLOC   malloc
@@ -317,6 +318,8 @@ static void sh_sm_timer_node_destroy(sh_sm_timer_node_t *timer_node)
         return;
     }
 
+    int level = sh_isr_disable();
+
     sh_list_remove(&timer_node->list);
 
     if (timer_node->timer) {
@@ -324,11 +327,15 @@ static void sh_sm_timer_node_destroy(sh_sm_timer_node_t *timer_node)
     }
 
     SH_FREE(timer_node);
+    
+    sh_isr_enable(level);
 }
 
 static void sh_sm_timer_overtick_cb(void *param)
 {
     SH_ASSERT(param);
+
+    int level = sh_isr_disable();
 
     sh_sm_timer_node_t *timer_node = (sh_sm_timer_node_t*)param;
 
@@ -342,6 +349,8 @@ static void sh_sm_timer_overtick_cb(void *param)
     if (timer_node->current_cnt >= timer_node->destroy_cnt) {
         sh_sm_timer_node_destroy(timer_node);
     }
+
+    sh_isr_enable(level);
 }
 
 static sh_sm_timer_node_t* sh_sm_timer_node_create(enum sh_timer_mode mode)
@@ -398,17 +407,21 @@ static int _sh_sm_start_timer(sh_sm_t *sm,
     timer_node->timer_id = timer_id;
     sh_list_init(&timer_node->list);
 
+    int level = sh_isr_disable();
+
     sh_timer_set_param(timer_node->timer, timer_node);
 
     if (sh_timer_start(timer_node->timer, timer_head, 
                        sm->timer_get_tick(), interval_tick))
     {
         sh_sm_timer_node_destroy(timer_node);
+        sh_isr_enable(level);
         return -1;
     }
 
     sh_list_insert_before(&timer_node->list, timer_node_head);
-
+    sh_isr_enable(level);
+    
     return 0;
 }
 
