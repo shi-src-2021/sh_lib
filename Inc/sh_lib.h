@@ -19,6 +19,8 @@ extern "C" {
     _x < _y ? _x : _y;  \
 })
 
+#define SH_ZERO_VALUE_REINIT(data, value) (data) = ((data) ? (data) : (value))
+
 #define SH_ALIGN_DOWN(data, align)  ((data) & ~(align - 1))
 #define SH_ALIGN_UP(data, align)    ((data) + align - 1) & ~(align - 1);
 

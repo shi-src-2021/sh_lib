@@ -11,25 +11,21 @@ enum sh_button_system_state {
     SH_BUTTON_STATE_LONG_PRESS,
 };
 
-int sh_button_init(struct sh_button *button,
-                   char *name, 
-                   enum sh_button_active_level active_level, 
-                   get_button_level_fn get_button_level, 
-                   uint8_t id)
+int sh_button_init(sh_button_t *button, sh_button_config_t *config)
 {
     SH_ASSERT(button);
-    SH_ASSERT(get_button_level);
+    SH_ASSERT(config);
 
     sh_list_init(&button->list);
-    strncpy(button->name, name, SH_BUTTON_NAME_MAX_LEN - 1);
+    strncpy(button->name, config->name, SH_BUTTON_NAME_MAX_LEN - 1);
     button->ticks = 0;
     button->repeat = 0;
     button->state = SH_BUTTON_STATE_IDLE;
     button->debounce_cnt = 0;
-    button->active_level = (!!active_level);
+    button->active_level = (!!config->active_level);
     button->current_level = !button->active_level;
-    button->id = id;
-    button->get_button_level = get_button_level;
+    button->id = config->id;
+    button->get_button_level = config->get_button_level;
 
     for (int i = 0; i < SH_BUTTON_EVENT_MAX; i++) {
         button->cb[i] = NULL;
@@ -38,7 +34,7 @@ int sh_button_init(struct sh_button *button,
     return 0;
 }
 
-int sh_button_attach_cb(struct sh_button *button, 
+int sh_button_attach_cb(sh_button_t *button, 
                         enum sh_button_event event_id, 
                         button_cb_fn cb)
 {
@@ -53,7 +49,7 @@ int sh_button_attach_cb(struct sh_button *button,
     return 0;
 }
 
-int sh_button_detach_cb(struct sh_button *button,
+int sh_button_detach_cb(sh_button_t *button,
                         enum sh_button_event event_id)
 {
     SH_ASSERT(button);
@@ -61,45 +57,23 @@ int sh_button_detach_cb(struct sh_button *button,
     return sh_button_attach_cb(button, event_id, NULL);
 }
 
-int sh_button_ctrl_init(sh_button_ctrl_t *button_ctrl,
-                        uint8_t invoke_interval_ms,
-                        uint16_t release_timeout_ms,
-                        uint16_t long_press_ms,
-                        uint8_t long_press_repeat_ticks,
-                        uint8_t debounce_ticks)
-{
-    SH_ASSERT(button_ctrl);
-    SH_ASSERT(invoke_interval_ms);
-    SH_ASSERT(release_timeout_ms);
-    SH_ASSERT(long_press_ms);
-
-    sh_list_init(&button_ctrl->head);
-    button_ctrl->invoke_interval_ms = invoke_interval_ms;
-    button_ctrl->debounce_ticks = debounce_ticks;
-    button_ctrl->release_timeout_ticks = 
-        (release_timeout_ms + invoke_interval_ms - 1) / invoke_interval_ms;
-    button_ctrl->long_press_ticks = 
-        (long_press_ms + invoke_interval_ms - 1) / invoke_interval_ms;
-    button_ctrl->long_press_repeat_ticks = long_press_repeat_ticks;
-
-    return 0;
-}
-
-int sh_button_ctrl_default_init(sh_button_ctrl_t *button_ctrl)
+int sh_button_ctrl_init(sh_button_ctrl_t *button_ctrl)
 {
     SH_ASSERT(button_ctrl);
 
     sh_list_init(&button_ctrl->head);
-    button_ctrl->invoke_interval_ms = 1;
-    button_ctrl->debounce_ticks = 8;
-    button_ctrl->release_timeout_ticks = 300;
-    button_ctrl->long_press_ticks = 1000;
-    button_ctrl->long_press_repeat_ticks = 200;
+
+    button_ctrl->debounce_ticks = button_ctrl->debounce_ticks ?: 10;
+
+    SH_ZERO_VALUE_REINIT(button_ctrl->debounce_ticks,           10);
+    SH_ZERO_VALUE_REINIT(button_ctrl->release_timeout_ticks,    300);
+    SH_ZERO_VALUE_REINIT(button_ctrl->long_press_ticks,         1000);
+    SH_ZERO_VALUE_REINIT(button_ctrl->long_press_repeat_ticks,  200);
 
     return 0;
 }
 
-int sh_button_ctrl_add(sh_button_ctrl_t *button_ctrl, struct sh_button *button)
+int sh_button_ctrl_add(sh_button_ctrl_t *button_ctrl, sh_button_t *button)
 {
     SH_ASSERT(button_ctrl);
     SH_ASSERT(button);
@@ -110,7 +84,7 @@ int sh_button_ctrl_add(sh_button_ctrl_t *button_ctrl, struct sh_button *button)
 }
 
 static enum sh_button_press_state 
-sh_button_get_press_state(struct sh_button *button)
+sh_button_get_press_state(sh_button_t *button)
 {
     SH_ASSERT(button);
 
@@ -118,7 +92,7 @@ sh_button_get_press_state(struct sh_button *button)
                 SH_BUTTON_PRESS : SH_BUTTON_RELEASE;
 }
 
-static int sh_button_debounce(struct sh_button *button, uint8_t debounce_ticks)
+static int sh_button_debounce(sh_button_t *button, uint8_t debounce_ticks)
 {
     SH_ASSERT(button);
 
@@ -134,7 +108,7 @@ static int sh_button_debounce(struct sh_button *button, uint8_t debounce_ticks)
     return 0;
 }
 
-static int sh_button_invoke_cb(struct sh_button *button,
+static int sh_button_invoke_cb(sh_button_t *button,
                                enum sh_button_event event_id)
 {
     SH_ASSERT(button);
@@ -152,7 +126,7 @@ static int sh_button_invoke_cb(struct sh_button *button,
     return 0;
 }
 
-static void sh_button_trans_to_state(struct sh_button *button, uint8_t state)
+static void sh_button_trans_to_state(sh_button_t *button, uint8_t state)
 {
     button->state = state;
     button->ticks = 0;
@@ -165,7 +139,7 @@ static void sh_button_trans_to_state(struct sh_button *button, uint8_t state)
             } while (0);
             
 
-static void sh_button_state_machine_process(struct sh_button *button,
+static void sh_button_state_machine_process(sh_button_t *button,
                                             sh_button_ctrl_t *button_ctrl)
 {
     SH_ASSERT(button);
@@ -235,7 +209,7 @@ int sh_button_handler(sh_button_ctrl_t *button_ctrl)
     }
     
     sh_list_for_each(node, &button_ctrl->head) {
-        struct sh_button *button = sh_container_of(node, struct sh_button, list);
+        sh_button_t *button = sh_container_of(node, sh_button_t, list);
         sh_button_debounce(button, button_ctrl->debounce_ticks);
         sh_button_state_machine_process(button, button_ctrl);
     }
@@ -243,7 +217,7 @@ int sh_button_handler(sh_button_ctrl_t *button_ctrl)
     return 0;
 }
 
-uint8_t sh_button_get_level(struct sh_button *button)
+uint8_t sh_button_get_level(sh_button_t *button)
 {
     SH_ASSERT(button);
     SH_ASSERT(button->get_button_level);
@@ -252,7 +226,7 @@ uint8_t sh_button_get_level(struct sh_button *button)
 }
 
 enum sh_button_press_state 
-sh_button_get_current_press_state(struct sh_button *button)
+sh_button_get_current_press_state(sh_button_t *button)
 {
     SH_ASSERT(button);
     SH_ASSERT(button->get_button_level);
