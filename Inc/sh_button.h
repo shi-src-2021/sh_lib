@@ -31,13 +31,12 @@ enum sh_button_event {
     SH_BUTTON_EVENT_LONG_PRESS_START,
     SH_BUTTON_EVENT_LONG_PRESS_REPEAT,
     SH_BUTTON_EVENT_MAX,
-    SH_BUTTON_EVENT_NONE,
 };
 
 typedef uint8_t (*get_button_level_fn)(uint8_t id);
 
-struct sh_button;
-typedef void (*button_cb_fn)(struct sh_button*);
+typedef struct sh_button sh_button_t;
+typedef void (*button_cb_fn)(sh_button_t *button, enum sh_button_event event_id);
 
 typedef struct sh_button_config {
     char        name[SH_BUTTON_NAME_MAX_LEN];
@@ -46,7 +45,7 @@ typedef struct sh_button_config {
     get_button_level_fn         get_button_level;
 } sh_button_config_t;
 
-typedef struct sh_button {
+struct sh_button {
     char        name[SH_BUTTON_NAME_MAX_LEN];
     sh_list_t   list;
     uint16_t    ticks;
@@ -59,7 +58,7 @@ typedef struct sh_button {
     uint8_t     id;
     button_cb_fn cb[SH_BUTTON_EVENT_MAX];
     get_button_level_fn get_button_level;
-} sh_button_t;
+};
 
 typedef struct sh_button_ctrl {
     sh_list_t   head;

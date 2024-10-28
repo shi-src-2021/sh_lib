@@ -120,7 +120,7 @@ static int sh_button_invoke_cb(sh_button_t *button,
     button->event = event_id;
 
     if (button->cb[event_id]) {
-        button->cb[event_id](button);
+        button->cb[event_id](button, event_id);
     }
 
     return 0;
