@@ -50,12 +50,12 @@ typedef struct sh_button {
     char        name[SH_BUTTON_NAME_MAX_LEN];
     sh_list_t   list;
     uint16_t    ticks;
-	uint8_t     debounce_cnt : 4;
+    uint8_t     debounce_cnt : 4;
     uint8_t     event : 4;
-	uint8_t     state : 3;
+    uint8_t     state : 3;
     uint8_t     repeat : 3;
-	uint8_t     active_level : 1;
-	uint8_t     current_level : 1;
+    uint8_t     active_level : 1;
+    uint8_t     current_level : 1;
     uint8_t     id;
     button_cb_fn cb[SH_BUTTON_EVENT_MAX];
     get_button_level_fn get_button_level;
