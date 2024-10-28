@@ -71,6 +71,7 @@ typedef struct sh_button_ctrl {
 int sh_button_ctrl_init(sh_button_ctrl_t *button_ctrl);
 int sh_button_ctrl_add(sh_button_ctrl_t *button_ctrl, sh_button_t *button);
 int sh_button_init(sh_button_t *button, sh_button_config_t *config);
+int sh_button_attach_cbs(sh_button_t *button, button_cb_fn cb);
 int sh_button_attach_cb(sh_button_t *button, enum sh_button_event event_id, button_cb_fn cb);
 int sh_button_detach_cb(sh_button_t *button, enum sh_button_event event_id);
 int sh_button_handler(sh_button_ctrl_t *button_ctrl);

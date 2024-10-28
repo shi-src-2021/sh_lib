@@ -34,6 +34,17 @@ int sh_button_init(sh_button_t *button, sh_button_config_t *config)
     return 0;
 }
 
+int sh_button_attach_cbs(sh_button_t *button, button_cb_fn cb)
+{
+    SH_ASSERT(button);
+    
+    for (int i = 0; i < SH_BUTTON_EVENT_MAX; i++) {
+        button->cb[i] = cb;
+    }
+
+    return 0;
+}
+
 int sh_button_attach_cb(sh_button_t *button, 
                         enum sh_button_event event_id, 
                         button_cb_fn cb)
