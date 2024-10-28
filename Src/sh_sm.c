@@ -442,6 +442,8 @@ static int sh_sm_start_timer_and_get_id(sh_sm_t *sm, sh_sm_timer_ctrl_t *ctrl,
 
 int sh_sm_start_global_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id)
 {
+    SH_ASSERT(sm);
+    
     sh_sm_timer_ctrl_t *ctrl = &sm->timer_ctrl;
 
     return sh_sm_start_timer_and_get_id(sm, ctrl, interval_tick, event_id);
@@ -449,6 +451,12 @@ int sh_sm_start_global_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_
 
 int sh_sm_start_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id)
 {
+    SH_ASSERT(sm);
+    
+    if (sm->current_state == NULL) {
+        return -1;
+    }
+
     sh_sm_timer_ctrl_t *ctrl = &sm->current_state->timer_ctrl;
 
     return sh_sm_start_timer_and_get_id(sm, ctrl, interval_tick, event_id);
