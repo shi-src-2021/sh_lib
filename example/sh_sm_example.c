@@ -2,15 +2,15 @@
 #include "sh_lib.h"
 
 enum sh_event_type {
-    SH_EVENT_1S_TIMER = 0,
+    SH_EVENT_1 = 1,
     SH_EVENT_2,
     SH_EVENT_3,
 };
 
 static sh_event_type_table_t event_table[] = {
-    {SH_EVENT_1S_TIMER, "1s"},
-    {SH_EVENT_2,        "two"},
-    {SH_EVENT_3,        "three"},
+    {SH_EVENT_1,    "event_1"},
+    {SH_EVENT_2,    "event_2"},
+    {SH_EVENT_3,    "event_3"},
 };
 
 enum sh_sm_state_e {
@@ -39,7 +39,7 @@ static void sh_sm_state_1_cb(const sh_event_msg_t *e)
     printf("state: [1], event: %d.", e->id);
 
     switch (e->id) {
-    case SH_EVENT_1S_TIMER:
+    case SH_EVENT_1:
         /* 发布事件 */
         board_sm_publish_event(SH_EVENT_2);
         break;
@@ -52,6 +52,7 @@ static void sh_sm_state_1_cb(const sh_event_msg_t *e)
     case SH_EVENT_3:
         /* 切换状态 */
         sh_sm_trans_to(sm, SH_SM_STATE_2);
+        /* 发布事件 */
         board_sm_publish_event(SH_EVENT_2);
         break;
 
@@ -74,6 +75,8 @@ static void sh_sm_state_2_cb(const sh_event_msg_t *e)
     case SH_EVENT_3:
         /* 切换状态 */
         sh_sm_trans_to(sm, SH_SM_STATE_1);
+        /* 发布事件 */
+        board_sm_publish_event(SH_EVENT_2);
         break;
 
     default:
@@ -91,7 +94,7 @@ int main(int argc, char **argv)
     sh_sm_state_create(sm, SH_SM_STATE_2);
 
     /* 状态1订阅事件组 */
-    uint8_t event_buf[] = {SH_EVENT_1S_TIMER, SH_EVENT_2, SH_EVENT_3};
+    uint8_t event_buf[] = {SH_EVENT_1, SH_EVENT_2, SH_EVENT_3};
     sh_sm_state_subscribe_events(sm, SH_SM_STATE_1, SH_GROUP(event_buf), sh_sm_state_1_cb);
 
     /* 状态2单独订阅事件 */
@@ -100,6 +103,9 @@ int main(int argc, char **argv)
 
     /* 切换状态1 */
     sh_sm_trans_to(sm, SH_SM_STATE_1);
+
+    /* 发布事件 */
+    board_sm_publish_event(SH_EVENT_1);
 
     while (1)
     {
