@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
+
 #define MAX(x, y) ({    \
     __typeof__(x) _x = (x); \
     __typeof__(y) _y = (y); \
