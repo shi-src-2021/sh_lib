@@ -10,8 +10,11 @@ sh_lib是一个mcu组件库，使用了面对对象编程范式，集成了多�
 * 状态机
 
 ### 注意事项
-由于未想出更好的线程安全管理方法，暂时使用中断的开关进行数据的包含，这就要求所有的回调函数应尽量简短，不然会导致实时性的下降。
+使用中断的开关进行数据的包含，这就要求所有的回调函数应尽量简短，避免实时性的下降。
 
-### 更新计划
-对部分组件编写了单元测试，后续会逐步进行完善；
+### 使用示例
+[按键示例](https://github.com/shi-src-2021/sh_lib/blob/master/example/sh_button_example.c)
 
+[状态机示例](https://github.com/shi-src-2021/sh_lib/blob/master/example/sh_sm_example.c)
+
+[链表示例](https://github.com/shi-src-2021/sh_lib/blob/master/example/sh_list_example.c)
