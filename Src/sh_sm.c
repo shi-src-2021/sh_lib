@@ -43,14 +43,14 @@ struct sh_sm {
     sh_sm_timer_ctrl_t timer_ctrl;
 };
 
-static int sh_sm_init(sh_sm_t *sm, sh_event_type_table_t *table,
-               size_t size, sh_timer_get_tick_fn fn)
+static int sh_sm_init(sh_sm_t *sm, uint8_t *event_buf, size_t size, 
+                      sh_timer_get_tick_fn fn)
 {
     SH_ASSERT(sm);
-    SH_ASSERT(table);
+    SH_ASSERT(event_buf);
     SH_ASSERT(fn);
 
-    sh_event_map_t *map = sh_event_map_create(table, size);
+    sh_event_map_t *map = sh_event_map_create(event_buf, size);
     if (map == NULL) {
         return -1;
     }
@@ -70,17 +70,16 @@ static int sh_sm_init(sh_sm_t *sm, sh_event_type_table_t *table,
     return 0;
 }
 
-sh_sm_t* sh_sm_create(sh_event_type_table_t *table, size_t size,
-                      sh_get_tick_fn fn)
+sh_sm_t* sh_sm_create(uint8_t *event_buf, size_t size, sh_get_tick_fn fn)
 {
-    SH_ASSERT(table);
+    SH_ASSERT(event_buf);
 
     sh_sm_t *sm = SH_MALLOC(sizeof(sh_sm_t));
     if (sm == NULL) {
         return NULL;
     }
 
-    if (sh_sm_init(sm, table, size, fn)) {
+    if (sh_sm_init(sm, event_buf, size, fn)) {
         SH_FREE(sm);
         sm = NULL;
     }

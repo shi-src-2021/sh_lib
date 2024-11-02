@@ -28,11 +28,6 @@ typedef struct sh_event_map {
     uint8_t         cnt;
 } sh_event_map_t;
 
-typedef struct sh_event_type_table {
-    uint8_t         event_id;
-    char            name[SH_EVENT_NAME_MAX];
-} sh_event_type_table_t;
-
 typedef struct sh_event_msg {
     uint8_t         id;
     void           *data;
@@ -50,7 +45,7 @@ typedef struct sh_event_server {
     sh_event_map_t *map;
 } sh_event_server_t;
 
-sh_event_map_t* sh_event_map_create(sh_event_type_table_t *table, size_t size);
+sh_event_map_t* sh_event_map_create(uint8_t *table, size_t size);
 void sh_event_map_destroy(sh_event_map_t *map);
 sh_event_server_t* sh_event_server_create(sh_event_map_t *map, const char *name);
 void sh_event_server_destroy(sh_event_server_t *server);
@@ -65,7 +60,6 @@ int sh_event_publish_with_param(sh_event_map_t *map, uint8_t event_id, void *dat
 int sh_event_handler(sh_event_server_t *server);
 int sh_event_server_clear_msg(sh_event_server_t *server);
 int sh_event_server_get_msg_count(sh_event_server_t *server);
-char* sh_event_get_event_id_name(sh_event_type_table_t *table, size_t size, uint8_t event_id);
 
 #ifdef __cplusplus
 }   /* extern "C" */ 

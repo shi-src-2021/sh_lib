@@ -14,12 +14,6 @@ enum sh_event_type {
     SH_EVENT_MAX,
 };
 
-static sh_event_type_table_t event_table[] = {
-    {SH_EVENT_ONE,      "one"},
-    {SH_EVENT_TWO,      "two"},
-    {SH_EVENT_THREE,    "three"},
-};
-
 enum sh_sm_state_e {
     SH_SM_STATE_ENTER = 0,
     SH_SM_STATE_EXECUTE,
@@ -29,6 +23,7 @@ enum sh_sm_state_e {
 };
 
 uint32_t event_cnt[SH_EVENT_MAX][SH_SM_STATE_MAX] = {0};
+uint8_t event_buf[] = {SH_EVENT_ONE, SH_EVENT_TWO, SH_EVENT_THREE};
 
 uint32_t current_tick = 0;
 
@@ -40,11 +35,6 @@ uint32_t get_tick_cnt(void)
 void test_sleep_tick(uint32_t increase_tick)
 {
     current_tick += increase_tick;
-}
-
-static char* get_event_id_name(uint8_t event_id)
-{
-    return sh_event_get_event_id_name(event_table, ARRAY_SIZE(event_table), event_id);
 }
 
 static void sh_sm_state_enter_cb(const sh_event_msg_t *e)
@@ -116,7 +106,7 @@ protected:
 
         _free_size = sh_get_free_size();
 
-        sm = sh_sm_create(event_table, ARRAY_SIZE(event_table), get_tick_cnt);
+        sm = sh_sm_create(SH_GROUP(event_buf), get_tick_cnt);
         ASSERT_TRUE(sm);
 
         ASSERT_EQ(0, sh_sm_state_create(sm, SH_SM_STATE_ENTER));
