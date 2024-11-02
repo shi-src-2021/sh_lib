@@ -18,7 +18,7 @@ typedef struct sh_sm sh_sm_t;
 
 typedef uint32_t (*sh_get_tick_fn)(void);
 
-sh_sm_t* sh_sm_create(sh_event_type_table_t *table, size_t size, sh_get_tick_fn fn);
+sh_sm_t* sh_sm_create(uint8_t *event_buf, size_t size, sh_get_tick_fn fn);
 void sh_sm_destroy(sh_sm_t *sm);
 int sh_sm_state_create(sh_sm_t *sm, uint8_t state_id);
 int sh_sm_state_destroy(sh_sm_t *sm, uint8_t state_id);

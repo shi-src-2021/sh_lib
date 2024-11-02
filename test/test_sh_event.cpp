@@ -63,7 +63,8 @@ protected:
     {
         mem_size = sh_get_free_size();
 
-        map = sh_event_map_create(event_table, ARRAY_SIZE(event_table));
+        uint8_t event_buf[] = {SH_EVENT_INIT, SH_EVENT_ENTER, SH_EVENT_EXIT};
+        map = sh_event_map_create(SH_GROUP(event_buf));
         server1 = sh_event_server_create(map, "server1");
         server2 = sh_event_server_create(map, "server2");
 

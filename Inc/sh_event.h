@@ -50,7 +50,7 @@ typedef struct sh_event_server {
     sh_event_map_t *map;
 } sh_event_server_t;
 
-sh_event_map_t* sh_event_map_create(sh_event_type_table_t *table, size_t size);
+sh_event_map_t* sh_event_map_create(uint8_t *table, size_t size);
 void sh_event_map_destroy(sh_event_map_t *map);
 sh_event_server_t* sh_event_server_create(sh_event_map_t *map, const char *name);
 void sh_event_server_destroy(sh_event_server_t *server);

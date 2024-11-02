@@ -37,7 +37,7 @@ static sh_event_t *sh_event_get_event_by_id(sh_event_map_t *map, uint8_t id);
 static int sh_event_get_index_by_id(sh_event_map_t *map, uint8_t id, uint8_t *index);
 static int _sh_event_execute(sh_event_server_t *server, bool is_cb_called);
 
-sh_event_map_t* sh_event_map_create(sh_event_type_table_t *table, size_t size)
+sh_event_map_t* sh_event_map_create(uint8_t *table, size_t size)
 {
     SH_ASSERT(table);
     
@@ -55,8 +55,8 @@ sh_event_map_t* sh_event_map_create(sh_event_type_table_t *table, size_t size)
             return NULL;
         }
 
-        sh_event_obj_init((sh_event_obj_t *)event, table[i].name);
-        event->id = table[i].event_id;
+        sh_event_obj_init((sh_event_obj_t *)event, NULL);
+        event->id = table[i];
         sh_list_init(&event->server);
 
         sh_list_insert_before(&event->obj.list, &map->obj.list);
