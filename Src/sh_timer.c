@@ -40,12 +40,16 @@ void sh_timer_init(sh_timer_t *timer, enum sh_timer_mode mode, overtick_cb_fn cb
 
 sh_timer_t* sh_timer_create(enum sh_timer_mode mode, overtick_cb_fn cb)
 {
+    int level = sh_isr_disable();
+
     sh_timer_t *timer = SH_MALLOC(sizeof(sh_timer_t));
     if (timer == NULL) {
         return NULL;
     }
 
     sh_timer_init(timer, mode, cb);
+
+    sh_isr_enable(level);
     
     return timer;
 }

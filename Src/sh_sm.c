@@ -461,6 +461,36 @@ int sh_sm_start_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id)
     return sh_sm_start_timer_and_get_id(sm, ctrl, interval_tick, event_id);
 }
 
+static sh_list_t* sh_sm_get_global_timer_head(sh_sm_t *sm)
+{
+    if (sm == NULL) {
+        return NULL;
+    }
+
+    return &sm->timer_ctrl.timer_head;
+}
+
+sh_timer_t* sh_sm_start_normal_timer(sh_sm_t *sm, uint32_t interval_tick, overtick_cb_fn cb)
+{
+    if (sm == NULL) {
+        return NULL;
+    }
+
+    sh_list_t *sm_head = sh_sm_get_global_timer_head(sm);
+
+    sh_timer_t *timer = sh_timer_create(SH_TIMER_MODE_LOOP, cb);
+    if (timer == NULL) {
+        return NULL;
+    }
+
+    if (sh_timer_start(timer, sm_head, sm->timer_get_tick(), interval_tick)) {
+        sh_timer_destroy(timer);
+        return NULL;
+    }
+
+    return timer;
+}
+
 static int sh_sm_timer_destroy(sh_list_t *timer_node_head, uint8_t timer_id)
 {
     SH_ASSERT(timer_node_head);

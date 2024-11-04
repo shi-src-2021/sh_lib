@@ -2,6 +2,7 @@
 #define __SH_SM_H__
 
 #include "sh_event.h"
+#include "sh_timer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,6 +31,7 @@ int sh_sm_handler(sh_sm_t *sm);
 int sh_sm_publish_event(sh_sm_t *sm, uint8_t event_id);
 int sh_sm_start_global_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id);
 int sh_sm_start_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id);
+sh_timer_t* sh_sm_start_normal_timer(sh_sm_t *sm, uint32_t interval_tick, overtick_cb_fn cb);
 int sh_sm_remove_timer(sh_sm_t *sm, enum sh_sm_timer_type type, uint8_t timer_id);
 int sh_sm_remove_state_all_timer(sh_sm_t *sm, uint8_t state_id);
 void sh_sm_remove_all_global_timer(sh_sm_t *sm);
