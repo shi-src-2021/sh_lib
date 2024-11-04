@@ -17,38 +17,19 @@ enum sh_event_type {
     SH_EVENT_EXIT,
 };
 
-static sh_event_type_table_t event_table[] = {
-    {SH_EVENT_INIT,     "init"},
-    {SH_EVENT_ENTER,    "enter"},
-    {SH_EVENT_EXIT,     "exit"},
-};
-
-char event_cb_output_buf[100];
-
-static char* get_event_id_name(uint8_t event_id)
-{
-    return sh_event_get_event_id_name(event_table, ARRAY_SIZE(event_table), event_id);
-}
-
 static void test_event_cb(const sh_event_msg_t *e)
 {
     switch (e->id)
     {
     case SH_EVENT_INIT:
-        sprintf(event_cb_output_buf, "%s - %s", 
-                get_event_id_name(e->id), e->data);
         init_cnt++;
         break;
         
     case SH_EVENT_ENTER:
-        sprintf(event_cb_output_buf, "%s - %s", 
-                get_event_id_name(e->id), e->data);
         enter_cnt++;
         break;
         
     case SH_EVENT_EXIT:
-        sprintf(event_cb_output_buf, "%s - %s", 
-                get_event_id_name(e->id), e->data);
         exit_cnt++;
         break;
 

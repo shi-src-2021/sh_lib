@@ -7,12 +7,6 @@ enum sh_event_type {
     SH_EVENT_3,
 };
 
-static sh_event_type_table_t event_table[] = {
-    {SH_EVENT_1,    "event_1"},
-    {SH_EVENT_2,    "event_2"},
-    {SH_EVENT_3,    "event_3"},
-};
-
 enum sh_sm_state_e {
     SH_SM_STATE_1 = 0,
     SH_SM_STATE_2,
@@ -86,15 +80,16 @@ static void sh_sm_state_2_cb(const sh_event_msg_t *e)
 
 int main(int argc, char **argv)
 {
+    uint8_t event_buf[] = {SH_EVENT_1, SH_EVENT_2, SH_EVENT_3};
+
     /* 创建状态机并注册获取系统事件函数 */
-    sm = sh_sm_create(SH_GROUP(event_table), board_sh_get_tick_fn);
+    sm = sh_sm_create(SH_GROUP(event_buf), board_sh_get_tick_fn);
 
     /* 创建状态1、2 */
     sh_sm_state_create(sm, SH_SM_STATE_1);
     sh_sm_state_create(sm, SH_SM_STATE_2);
 
     /* 状态1订阅事件组 */
-    uint8_t event_buf[] = {SH_EVENT_1, SH_EVENT_2, SH_EVENT_3};
     sh_sm_state_subscribe_events(sm, SH_SM_STATE_1, SH_GROUP(event_buf), sh_sm_state_1_cb);
 
     /* 状态2单独订阅事件 */
