@@ -20,6 +20,7 @@ typedef struct sh_sm_timer {
     sh_sm_t *sm;
     enum sh_sm_timer_type type;
     uint8_t timer_id;
+    size_t param;
 } sh_sm_timer_t;
 
 typedef struct sh_sm_timer_ctrl {
@@ -41,6 +42,7 @@ struct sh_sm {
     sh_event_map_t *map;
     sh_timer_get_tick_fn timer_get_tick;
     sh_sm_timer_ctrl_t timer_ctrl;
+    bool re_execute;
 };
 
 static int sh_sm_init(sh_sm_t *sm, uint8_t *event_buf, size_t size, 
@@ -283,26 +285,39 @@ int sh_sm_trans_to(sh_sm_t *sm, uint8_t state_id)
     sm->current_state = to_state;
     sh_event_server_start(sm->current_state->server);
 
+    sm->re_execute = true;
+
     return 0;
 }
 
 int sh_sm_handler(sh_sm_t *sm)
 {
-    SH_ASSERT(sm);
+    sh_event_server_t *server = NULL;
+
+    if (sm == NULL) {
+        return -1;
+    }
 
     if (sm->current_state == NULL) {
         return -1;
     }
 
-    sh_event_server_t *server = sm->current_state->server;
+execute_handler:
+    server = sm->current_state->server;
     if (server == NULL) {
         return -1;
     }
 
     sh_timer_handler(&sm->timer_ctrl.timer_head);
     sh_timer_handler(&sm->current_state->timer_ctrl.timer_head);
+    sh_event_handler(server);
 
-    return sh_event_handler(server);
+    if (sm->re_execute) {
+        sm->re_execute = false;
+        goto execute_handler;
+    }
+
+    return 0;
 }
 
 int sh_sm_publish_event(sh_sm_t *sm, uint8_t event_id)
@@ -313,12 +328,12 @@ int sh_sm_publish_event(sh_sm_t *sm, uint8_t event_id)
     return sh_event_publish(sm->map, event_id);
 }
 
-int sh_sm_publish_event_with_param(sh_sm_t *sm, uint8_t event_id, void* data, size_t size)
+int sh_sm_publish_event_with_param(sh_sm_t *sm, uint8_t event_id, size_t param)
 {
     SH_ASSERT(sm);
     SH_ASSERT(sm->map);
 
-    return sh_event_publish_with_param(sm->map, event_id, data, size);
+    return sh_event_publish_with_param(sm->map, event_id, NULL, param);
 }
 
 static void sh_sm_timer_node_destroy(sh_sm_timer_t *timer_node)
@@ -348,7 +363,7 @@ static void sh_sm_timer_overtick_cb(void *param)
 
     sh_sm_timer_t *timer_node = (sh_sm_timer_t*)param;
 
-    sh_sm_publish_event(timer_node->sm, timer_node->event_id);
+    sh_sm_publish_event_with_param(timer_node->sm, timer_node->event_id, timer_node->param);
 
     sh_sm_remove_timer(timer_node->sm, timer_node->type, timer_node->timer_id);
 
@@ -389,7 +404,8 @@ static int sh_sm_timer_get_uniqe_id(uint32_t bitmap)
 }
 
 static int _sh_sm_start_timer(sh_sm_t *sm, uint8_t event_id, uint8_t timer_id,
-                              sh_sm_timer_ctrl_t *ctrl, uint32_t interval_tick)
+                              sh_sm_timer_ctrl_t *ctrl, uint32_t interval_tick,
+                              size_t param)
 {
     int level = sh_isr_disable();
 
@@ -402,6 +418,7 @@ static int _sh_sm_start_timer(sh_sm_t *sm, uint8_t event_id, uint8_t timer_id,
     timer_node->sm = sm;
     timer_node->event_id = event_id;
     timer_node->timer_id = timer_id;
+    timer_node->param = param;
     timer_node->type = ((ctrl == &sm->timer_ctrl) ?
                         SH_SM_GLOBAL_TIMER : SH_SM_PRIVATE_TIMER);
 
@@ -424,7 +441,8 @@ static int _sh_sm_start_timer(sh_sm_t *sm, uint8_t event_id, uint8_t timer_id,
 }
 
 static int sh_sm_start_timer_and_get_id(sh_sm_t *sm, sh_sm_timer_ctrl_t *ctrl,
-                                        uint32_t interval_tick, uint8_t event_id)
+                                        uint32_t interval_tick, uint8_t event_id,
+                                        size_t param)
 {
     SH_ASSERT(sm);
     
@@ -436,7 +454,7 @@ static int sh_sm_start_timer_and_get_id(sh_sm_t *sm, sh_sm_timer_ctrl_t *ctrl,
         return -1;
     }
 
-    if (_sh_sm_start_timer(sm, event_id, timer_id, ctrl, interval_tick)) {
+    if (_sh_sm_start_timer(sm, event_id, timer_id, ctrl, interval_tick, param)) {
         sh_isr_enable(level);
         return -1;
     }
@@ -453,7 +471,7 @@ int sh_sm_start_global_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_
     
     sh_sm_timer_ctrl_t *ctrl = &sm->timer_ctrl;
 
-    return sh_sm_start_timer_and_get_id(sm, ctrl, interval_tick, event_id);
+    return sh_sm_start_timer_and_get_id(sm, ctrl, interval_tick, event_id, 0);
 }
 
 int sh_sm_start_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id)
@@ -466,7 +484,21 @@ int sh_sm_start_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id)
 
     sh_sm_timer_ctrl_t *ctrl = &sm->current_state->timer_ctrl;
 
-    return sh_sm_start_timer_and_get_id(sm, ctrl, interval_tick, event_id);
+    return sh_sm_start_timer_and_get_id(sm, ctrl, interval_tick, event_id, 0);
+}
+
+int sh_sm_start_timer_with_param(sh_sm_t *sm, uint32_t interval_tick, 
+                                 uint8_t event_id, size_t param)
+{
+    SH_ASSERT(sm);
+    
+    if (sm->current_state == NULL) {
+        return -1;
+    }
+
+    sh_sm_timer_ctrl_t *ctrl = &sm->current_state->timer_ctrl;
+
+    return sh_sm_start_timer_and_get_id(sm, ctrl, interval_tick, event_id, param);
 }
 
 static sh_list_t* sh_sm_get_global_timer_head(sh_sm_t *sm)

@@ -31,7 +31,7 @@ typedef struct sh_event_map {
 typedef struct sh_event_msg {
     uint8_t         id;
     void           *data;
-    size_t          data_size;
+    size_t          size;
 } sh_event_msg_t;
 
 typedef void(*event_cb)(const sh_event_msg_t *e);

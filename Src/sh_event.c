@@ -414,7 +414,7 @@ static sh_event_msg_ctrl_t* sh_event_msg_create(uint8_t event_id,
 
     event_ctrl->msg.id          = event_id;
     event_ctrl->msg.data        = _data;
-    event_ctrl->msg.data_size   = size;
+    event_ctrl->msg.size        = size;
     event_ctrl->ref             = 0;
 
     return event_ctrl;
