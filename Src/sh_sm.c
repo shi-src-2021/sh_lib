@@ -313,6 +313,14 @@ int sh_sm_publish_event(sh_sm_t *sm, uint8_t event_id)
     return sh_event_publish(sm->map, event_id);
 }
 
+int sh_sm_publish_event_with_param(sh_sm_t *sm, uint8_t event_id, void* data, size_t size)
+{
+    SH_ASSERT(sm);
+    SH_ASSERT(sm->map);
+
+    return sh_event_publish_with_param(sm->map, event_id, data, size);
+}
+
 static void sh_sm_timer_node_destroy(sh_sm_timer_t *timer_node)
 {
     if (timer_node == NULL) {
