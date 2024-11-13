@@ -20,7 +20,7 @@ typedef struct sh_sm_timer {
     sh_sm_t *sm;
     enum sh_sm_timer_type type;
     uint8_t timer_id;
-    size_t param;
+    unsigned int param;
 } sh_sm_timer_t;
 
 typedef struct sh_sm_timer_ctrl {
@@ -328,7 +328,7 @@ int sh_sm_publish_event(sh_sm_t *sm, uint8_t event_id)
     return sh_event_publish(sm->map, event_id);
 }
 
-int sh_sm_publish_event_with_param(sh_sm_t *sm, uint8_t event_id, size_t param)
+int sh_sm_publish_event_with_param(sh_sm_t *sm, uint8_t event_id, unsigned int param)
 {
     SH_ASSERT(sm);
     SH_ASSERT(sm->map);
@@ -405,7 +405,7 @@ static int sh_sm_timer_get_uniqe_id(uint32_t bitmap)
 
 static int _sh_sm_start_timer(sh_sm_t *sm, uint8_t event_id, uint8_t timer_id,
                               sh_sm_timer_ctrl_t *ctrl, uint32_t interval_tick,
-                              size_t param)
+                              unsigned int param)
 {
     int level = sh_isr_disable();
 
@@ -442,7 +442,7 @@ static int _sh_sm_start_timer(sh_sm_t *sm, uint8_t event_id, uint8_t timer_id,
 
 static int sh_sm_start_timer_and_get_id(sh_sm_t *sm, sh_sm_timer_ctrl_t *ctrl,
                                         uint32_t interval_tick, uint8_t event_id,
-                                        size_t param)
+                                        unsigned int param)
 {
     SH_ASSERT(sm);
     
@@ -488,7 +488,7 @@ int sh_sm_start_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id)
 }
 
 int sh_sm_start_timer_with_param(sh_sm_t *sm, uint32_t interval_tick, 
-                                 uint8_t event_id, size_t param)
+                                 uint8_t event_id, unsigned int param)
 {
     SH_ASSERT(sm);
     

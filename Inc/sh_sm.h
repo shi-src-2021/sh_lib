@@ -30,10 +30,10 @@ int sh_sm_state_unsubscribe_event(sh_sm_t *sm, uint8_t state_id, uint8_t event_i
 int sh_sm_trans_to(sh_sm_t *sm, uint8_t state_id);
 int sh_sm_handler(sh_sm_t *sm);
 int sh_sm_publish_event(sh_sm_t *sm, uint8_t event_id);
-int sh_sm_publish_event_with_param(sh_sm_t *sm, uint8_t event_id, size_t param);
+int sh_sm_publish_event_with_param(sh_sm_t *sm, uint8_t event_id, unsigned int param);
 int sh_sm_start_global_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id);
 int sh_sm_start_timer(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id);
-int sh_sm_start_timer_with_param(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id, size_t param);
+int sh_sm_start_timer_with_param(sh_sm_t *sm, uint32_t interval_tick, uint8_t event_id, unsigned int param);
 sh_timer_t* sh_sm_start_normal_timer(sh_sm_t *sm, uint32_t interval_tick, overtick_cb_fn cb);
 int sh_sm_remove_timer(sh_sm_t *sm, enum sh_sm_timer_type type, uint8_t timer_id);
 int sh_sm_remove_state_all_timer(sh_sm_t *sm, uint8_t state_id);

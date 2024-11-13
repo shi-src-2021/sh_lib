@@ -472,3 +472,21 @@ TEST_F(TEST_SH_SM, sm_global_timer_manual_remove_all_test) {
     EXPECT_EQ(0, event_cnt[SH_SM_STATE_ENTER][SH_EVENT_TWO]);
     EXPECT_EQ(0, event_cnt[SH_SM_STATE_ENTER][SH_EVENT_THREE]);
 }
+
+TEST_F(TEST_SH_SM, sh_sm_start_timer_with_param_test) {
+    uint32_t free_size = sh_get_free_size();
+
+    EXPECT_EQ(0, sh_sm_start_timer_with_param(sm, 500, SH_EVENT_ONE, 10));
+
+    EXPECT_GT(free_size, sh_get_free_size());
+
+    for (int i = 0; i < 1100; i++) {
+        sh_sm_handler(sm);
+        test_sleep_tick(1);
+    }
+
+    EXPECT_EQ(1, event_cnt[SH_SM_STATE_ENTER][SH_EVENT_ONE]);
+    EXPECT_EQ(0, event_cnt[SH_SM_STATE_ENTER][SH_EVENT_TWO]);
+    EXPECT_EQ(0, event_cnt[SH_SM_STATE_ENTER][SH_EVENT_THREE]);
+}
+
