@@ -38,6 +38,7 @@ sh_timer_t* sh_sm_start_normal_timer(sh_sm_t *sm, uint32_t interval_tick, overti
 int sh_sm_remove_timer(sh_sm_t *sm, enum sh_sm_timer_type type, uint8_t timer_id);
 int sh_sm_remove_state_all_timer(sh_sm_t *sm, uint8_t state_id);
 void sh_sm_remove_all_global_timer(sh_sm_t *sm);
+unsigned int sh_sm_get_event_param(const sh_event_msg_t *msg);
 
 #ifdef __cplusplus
 }   /* extern "C" */ 

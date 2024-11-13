@@ -25,6 +25,8 @@ enum sh_sm_state_e {
 uint32_t event_cnt[SH_EVENT_MAX][SH_SM_STATE_MAX] = {0};
 uint8_t event_buf[] = {SH_EVENT_ONE, SH_EVENT_TWO, SH_EVENT_THREE};
 
+unsigned int timer_param[SH_EVENT_MAX] = {0};
+
 uint32_t current_tick = 0;
 
 uint32_t get_tick_cnt(void)
@@ -41,6 +43,7 @@ static void sh_sm_state_enter_cb(const sh_event_msg_t *e)
 {
     char state_name[] = "enter";
     uint32_t *event_cnt_ptr = (uint32_t*)&event_cnt[SH_SM_STATE_ENTER];
+    timer_param[e->id] = sh_sm_get_event_param(e);
 
     switch (e->id) {
     case SH_EVENT_ONE:
@@ -103,6 +106,7 @@ protected:
     {
         current_tick = 0;
         memset(event_cnt, 0, sizeof(event_cnt));
+        memset(timer_param, 0, sizeof(timer_param));
 
         _free_size = sh_get_free_size();
 
@@ -475,9 +479,8 @@ TEST_F(TEST_SH_SM, sm_global_timer_manual_remove_all_test) {
 
 TEST_F(TEST_SH_SM, sh_sm_start_timer_with_param_test) {
     uint32_t free_size = sh_get_free_size();
-
-    EXPECT_EQ(0, sh_sm_start_timer_with_param(sm, 500, SH_EVENT_ONE, 10));
-
+    EXPECT_EQ(0, sh_sm_start_timer_with_param(sm, 500, SH_EVENT_ONE, (unsigned int)-11));
+    EXPECT_EQ(1, sh_sm_start_timer_with_param(sm, 700, SH_EVENT_TWO, 101));
     EXPECT_GT(free_size, sh_get_free_size());
 
     for (int i = 0; i < 1100; i++) {
@@ -486,7 +489,30 @@ TEST_F(TEST_SH_SM, sh_sm_start_timer_with_param_test) {
     }
 
     EXPECT_EQ(1, event_cnt[SH_SM_STATE_ENTER][SH_EVENT_ONE]);
-    EXPECT_EQ(0, event_cnt[SH_SM_STATE_ENTER][SH_EVENT_TWO]);
+    EXPECT_EQ(1, event_cnt[SH_SM_STATE_ENTER][SH_EVENT_TWO]);
     EXPECT_EQ(0, event_cnt[SH_SM_STATE_ENTER][SH_EVENT_THREE]);
+
+    EXPECT_EQ(-11, timer_param[SH_EVENT_ONE]);
+    EXPECT_EQ(101, timer_param[SH_EVENT_TWO]);
 }
+
+TEST_F(TEST_SH_SM, sh_sm_publish_event_with_param_test) {
+    EXPECT_EQ(0, sh_sm_publish_event_with_param(sm, SH_EVENT_ONE, (unsigned int)-12));
+    EXPECT_EQ(0, sh_sm_publish_event_with_param(sm, SH_EVENT_TWO, 101));
+
+    for (int i = 0; i < 1100; i++) {
+        sh_sm_handler(sm);
+        test_sleep_tick(1);
+    }
+
+    EXPECT_EQ(1, event_cnt[SH_SM_STATE_ENTER][SH_EVENT_ONE]);
+    EXPECT_EQ(1, event_cnt[SH_SM_STATE_ENTER][SH_EVENT_TWO]);
+    EXPECT_EQ(0, event_cnt[SH_SM_STATE_ENTER][SH_EVENT_THREE]);
+
+    EXPECT_EQ(-12, (int)timer_param[SH_EVENT_ONE]);
+    EXPECT_GT(1, (int)timer_param[SH_EVENT_ONE]);
+    EXPECT_EQ(101, timer_param[SH_EVENT_TWO]);
+}
+
+
 

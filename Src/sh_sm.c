@@ -629,3 +629,10 @@ void sh_sm_remove_all_global_timer(sh_sm_t *sm)
     }
 }
 
+unsigned int sh_sm_get_event_param(const sh_event_msg_t *msg)
+{
+    return msg->size;
+}
+
+
+
