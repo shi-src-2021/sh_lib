@@ -61,6 +61,8 @@ extern "C" {
 
 #define SH_OVERRIDE(func, ...)  _COMBINE2(func, VA_ARGS_NUM(__VA_ARGS__))(__VA_ARGS__)
 
+#define FN_OVERLOAD(fn, ...)  fn(VA_ARGS_NUM(__VA_ARGS__), __VA_ARGS__)
+
 #define SH_COMBINE(...) SH_OVERRIDE(COMBINE, ##__VA_ARGS__)
 
 
